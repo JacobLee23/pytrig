@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytrig"
-version = "0.0.2"
+version = "0.0.3"
 description = ""
 readme = "README.md"
 authors = [
@@ -30,4 +30,5 @@ where = ["."]
 include = ["pytrig"]
 exclude = [
     "pytrig.tests*"
+    "docs*"
 ]
