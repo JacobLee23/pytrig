@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytrig"
+version = "0.0.1"
+description = ""
+readme = "README.md"
+authors = [
+    { name = "Jacob Lee", email = "Jacob.J.Lee@outlook.com" }
+]
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+requires-python = ">=3.6"
+
+[project.urls]
+homepage = "https://github.com/JacobLee23/pytrig"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pytrig"]
+exclude = [
+    "pytrig.tests*"
+]
