@@ -4,6 +4,7 @@
 
 import decimal
 from decimal import Decimal
+from math import factorial
 
 from .constants import PRECISION
 
@@ -86,6 +87,30 @@ def madhava_series(*, precision: int = PRECISION) -> Decimal:
             k += 1
 
         return Decimal(12).sqrt() * sum_
+
+
+def newton_formula(*, precision: int = PRECISION) -> Decimal:
+    r"""
+
+    :param precision:
+    :return:
+    """
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 2
+
+        sum_ = Decimal(0)
+        k: int = 0
+
+        while True:
+            term = Decimal(2) ** k * Decimal(factorial(k)) ** 2 / Decimal(factorial(2 * k + 1))
+
+            if term + Decimal(1) == Decimal(1):
+                break
+
+            sum_ += term
+            k += 1
+
+        return 2 * sum_
 
 
 def viete_formula(*, precision: int = PRECISION) -> Decimal:
