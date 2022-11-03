@@ -113,6 +113,30 @@ def newton_formula(*, precision: int = PRECISION) -> Decimal:
         return 2 * sum_
 
 
+def nilakantha_formula(*, precision: int = PRECISION) -> Decimal:
+    r"""
+
+    :param precision:
+    :return:
+    """
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 2
+
+        sum_ = Decimal(0)
+        k: int = 0
+
+        while True:
+            term = 1 / Decimal((2 * k + 2) * (2 * k + 3) * (2 * k + 4)) * Decimal(-1) ** k
+
+            if term + Decimal(1) == Decimal(1):
+                break
+
+            sum_ += term
+            k += 1
+
+        return 4 * sum_ + Decimal(3)
+
+
 def viete_formula(*, precision: int = PRECISION) -> Decimal:
     r"""
     `Wikipedia`_
