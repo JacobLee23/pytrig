@@ -228,11 +228,12 @@ def ramanujan_formula(*, precision: int) -> Decimal:
         sum_ = Decimal(0)
         k: int = 0
 
+        # Ramanujan-Sato series generalization
+        s = lambda x: Decimal(factorial(4 * k)) / (Decimal(factorial(k)) ** 4)
+        a, b, c = Decimal(26390), Decimal(1103), Decimal(396)
+
         while True:
-            term = (
-                (Decimal(factorial(4 * k)) * Decimal(1103 + 26390 * k))
-                / (Decimal(factorial(k)) ** 4 * Decimal(396) ** (4 * k))
-            )
+            term = s(k) * (a * k + b) / c ** k
 
             if term + Decimal(1) == Decimal(1):
                 break
