@@ -137,6 +137,33 @@ def nilakantha_formula(*, precision: int = PRECISION) -> Decimal:
         return 4 * sum_ + Decimal(3)
 
 
+def ramanujan_formula(*, precision: int) -> Decimal:
+    """
+
+    :param precision:
+    :return:
+    """
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 2
+
+        sum_ = Decimal(0)
+        k: int = 0
+
+        while True:
+            term = (
+                (Decimal(factorial(4 * k)) * Decimal(1103 + 26390 * k))
+                / (Decimal(factorial(k)) ** 4 * Decimal(396) ** (4 * k))
+            )
+
+            if term + Decimal(1) == Decimal(1):
+                break
+
+            sum_ += term
+            k += 1
+
+        return 1 / (2 * Decimal(2).sqrt() / 9801 * sum_)
+
+
 def viete_formula(*, precision: int = PRECISION) -> Decimal:
     r"""
     `Wikipedia`_
