@@ -1,5 +1,7 @@
 """
+`Wikipedia`_
 
+.. _Wikipedia: https://en.wikipedia.org/wiki/Approximations_of_%CF%80
 """
 
 import decimal
@@ -21,6 +23,7 @@ def chudnovsky_algorithm(*, precision: int = PRECISION) -> Decimal:
     with decimal.localcontext() as ctx:
         ctx.prec = precision + 2
 
+        # Initial conditions
         sum_ = Decimal(0)
         k: int = 0
 
@@ -56,6 +59,7 @@ def euler_formula(*, precision: int = PRECISION) -> Decimal:
     with decimal.localcontext() as ctx:
         ctx.prec = precision + 2
 
+        # Initial conditions
         sum_ = Decimal(0)
         k: int = 1
 
@@ -72,6 +76,38 @@ def euler_formula(*, precision: int = PRECISION) -> Decimal:
         return (6 * sum_).sqrt()
 
 
+def gauss_legendre(*, precision: int = PRECISION) -> Decimal:
+    """
+    `Wikipedia`_
+
+    .. _Wikipedia: https://en.wikipedia.org/wiki/Gauss%E2%80%93Legendre_algorithm
+
+    :param precision:
+    :return:
+    """
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 2
+
+        # Initial conditions
+        a = Decimal(1)
+        b = 1 / Decimal(2).sqrt()
+        t = 1 / Decimal(4)
+        p = Decimal(1)
+
+        while True:
+            a_: Decimal = (a + b) / 2
+            b_: Decimal = (a * b).sqrt()
+            t_: Decimal = t - p * (a - a_) ** 2
+            p_: Decimal = 2 * p
+
+            if a == b:
+                break
+
+            a, b, t, p = a_, b_, t_, p_
+
+        return (a_ + b_) ** 2 / (4 * t_)
+
+
 def leibniz_formula(*, precision: int = PRECISION) -> Decimal:
     """
     `Wikipedia`_
@@ -84,8 +120,10 @@ def leibniz_formula(*, precision: int = PRECISION) -> Decimal:
     with decimal.localcontext() as ctx:
         ctx.prec = precision + 2
 
+        # Initial conditions
         sum_ = Decimal(0)
         k: int = 0
+
         while True:
             term = (1 / Decimal(2 * k + 1)) * Decimal(-1) ** k
             print(term)
@@ -136,6 +174,7 @@ def newton_formula(*, precision: int = PRECISION) -> Decimal:
     with decimal.localcontext() as ctx:
         ctx.prec = precision + 2
 
+        # Initial conditions
         sum_ = Decimal(0)
         k: int = 0
 
@@ -160,6 +199,7 @@ def nilakantha_formula(*, precision: int = PRECISION) -> Decimal:
     with decimal.localcontext() as ctx:
         ctx.prec = precision + 2
 
+        # Initial conditions
         sum_ = Decimal(0)
         k: int = 0
 
@@ -184,6 +224,7 @@ def ramanujan_formula(*, precision: int) -> Decimal:
     with decimal.localcontext() as ctx:
         ctx.prec = precision + 2
 
+        # Initial conditions
         sum_ = Decimal(0)
         k: int = 0
 
@@ -242,8 +283,10 @@ def wallis_product(*, precision: int = PRECISION) -> Decimal:
     with decimal.localcontext() as ctx:
         ctx.prec = precision + 2
 
+        # Initial conditions
         product_ = Decimal(1)
         k: int = 1
+
         while True:
             term = Decimal(4 * k) / Decimal(4 * k ** 2 - 1)
 
