@@ -61,3 +61,29 @@ def viete_formula(*, precision: int = PRECISION) -> Decimal:
             a = (Decimal(2) + a).sqrt()
 
         return 2 / product_
+
+
+def wallis_product(*, precision: int = PRECISION) -> Decimal:
+    r"""
+    `Wikipedia`_
+
+    .. _Wikipedia: https://en.wikipedia.org/wiki/Wallis_product
+
+    :param precision:
+    :return:
+    """
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 2
+
+        product_ = Decimal(1)
+        k: int = 1
+        while True:
+            term = Decimal(4 * k) / Decimal(4 * k ** 2 - 1)
+
+            if 2 / term == Decimal(1):
+                break
+
+            product_ *= term
+            k += 1
+
+        return 2 / product_
