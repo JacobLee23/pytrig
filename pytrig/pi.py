@@ -8,6 +8,31 @@ from decimal import Decimal
 from .constants import PRECISION
 
 
+def euler_formula(*, precision: int = PRECISION) -> Decimal:
+    r"""
+
+    :param precision:
+    :return:
+    """
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 2
+
+        sum_ = Decimal(0)
+        k: int = 1
+
+        while True:
+            term = 1 / Decimal(k) ** 2
+            print(term)
+
+            if term + Decimal(1) == Decimal(1):
+                break
+
+            sum_ += term
+            k += 1
+
+        return (6 * sum_).sqrt()
+
+
 def leibniz_formula(*, precision: int = PRECISION) -> Decimal:
     """
     `Wikipedia`_
