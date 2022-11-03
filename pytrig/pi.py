@@ -60,6 +60,34 @@ def leibniz_formula(*, precision: int = PRECISION) -> Decimal:
         return 4 * sum_
 
 
+def madhava_series(*, precision: int = PRECISION) -> Decimal:
+    r"""
+    `Madhava Series`_
+
+    .. _Madhava Series: https://en.wikipedia.org/wiki/Madhava_series
+
+    :param precision:
+    :return:
+    """
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 2
+
+        # Initial conditions
+        sum_ = Decimal(0)
+        k: int = 0
+
+        while True:
+            term = (-1 / Decimal(3)) ** k / (2 * k + 1)
+
+            if term + Decimal(1) == Decimal(1):
+                break
+
+            sum_ += term
+            k += 1
+
+        return Decimal(12).sqrt() * sum_
+
+
 def viete_formula(*, precision: int = PRECISION) -> Decimal:
     r"""
     `Wikipedia`_
