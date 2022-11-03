@@ -9,6 +9,44 @@ from math import factorial
 from .constants import PRECISION
 
 
+def chudnovsky_algorithm(*, precision: int = PRECISION) -> Decimal:
+    r"""
+    `Wikipedia`_
+
+    .. _Wikipedia: https://en.wikipedia.org/wiki/Chudnovsky_algorithm
+
+    :param precision:
+    :return:
+    """
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 2
+
+        sum_ = Decimal(0)
+        k: int = 0
+
+        while True:
+            term = (
+                (
+                        Decimal(-1) ** k
+                        * Decimal(factorial(6 * k))
+                        * (545140134 * k + 13591409)
+                )
+                / (
+                        Decimal(factorial(3 * k))
+                        * Decimal(factorial(k)) ** 3
+                        * Decimal(640320) ** Decimal(3 * k + 3 / 2)
+                )
+            )
+
+            if term + Decimal(1) == Decimal(1):
+                break
+
+            sum_ += term
+            k += 1
+
+        return 1 / (12 * sum_)
+
+
 def euler_formula(*, precision: int = PRECISION) -> Decimal:
     r"""
 
