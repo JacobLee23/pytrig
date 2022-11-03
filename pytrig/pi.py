@@ -8,6 +8,33 @@ from decimal import Decimal
 from .constants import PRECISION
 
 
+def leibniz_formula(*, precision: int = PRECISION) -> Decimal:
+    """
+    `Wikipedia`_
+
+    .. _Wikipedia: https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80
+
+    :param precision:
+    :return:
+    """
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 2
+
+        sum_ = Decimal(0)
+        k: int = 0
+        while True:
+            term = (1 / Decimal(2 * k + 1)) * Decimal(-1) ** k
+            print(term)
+
+            if term + Decimal(1) == Decimal(1):
+                break
+
+            sum_ += term
+            k += 1
+
+        return 4 * sum_
+
+
 def viete_formula(*, precision: int = PRECISION) -> Decimal:
     r"""
     `Wikipedia`_
