@@ -13,14 +13,16 @@ from .constants import PRECISION
 D = decimal.Decimal
 
 
-def _summation(func: typing.Callable[[int], D], *, context: decimal.Context) -> D:
+def _summation(func: typing.Callable[[int], D], *, precision: int) -> D:
     """
 
     :param func:
-    :param context:
+    :param precision:
     :return:
     """
-    with decimal.localcontext(context) as ctx:
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision
+
         sum_ = D(0)
         k: int = 1
 
@@ -34,14 +36,16 @@ def _summation(func: typing.Callable[[int], D], *, context: decimal.Context) -> 
             k += 1
 
 
-def _product(func: typing.Callable[[int], D], *, context: decimal.Context) -> D:
+def _product(func: typing.Callable[[int], D], *, precision: int) -> D:
     """
 
     :param func:
-    :param context:
+    :param precision:
     :return:
     """
-    with decimal.localcontext(context) as ctx:
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision
+
         product_ = D(1)
         k: int = 1
 
@@ -53,6 +57,31 @@ def _product(func: typing.Callable[[int], D], *, context: decimal.Context) -> D:
 
             product_ *= term
             k += 1
+
+
+def _precision(func: typing.Callable[[decimal.Context], D]) -> typing.Callable:
+    """
+
+    :param func:
+    :return:
+    """
+    def wrapper(precision: int = PRECISION) -> D:
+        """
+
+        :param precision:
+        :return:
+        """
+        with decimal.localcontext() as ctx:
+            ctx.prec = precision + 10
+
+            res = func(ctx)
+
+        with decimal.localcontext() as ctx:
+            ctx.prec = precision + 1
+
+            return +res
+
+    return wrapper
 
 
 class BorweinAlgorithm:
@@ -163,28 +192,27 @@ def euler_formula(*, precision: int = PRECISION) -> D:
     :return:
     """
     with decimal.localcontext() as ctx:
-        ctx.prec = precision + 2
+        ctx.prec = precision + 10
 
         sum_ = _summation(
             lambda k: 1 / D(k) ** 2,
-            context=ctx
+            precision=ctx.prec
         )
 
     return +(6 * sum_).sqrt()
 
 
-def gauss_legendre(*, precision: int = PRECISION) -> D:
+@_precision
+def gauss_legendre(ctx: decimal.Context) -> D:
     """
     `Wikipedia`_
 
     .. _Wikipedia: https://en.wikipedia.org/wiki/Gauss%E2%80%93Legendre_algorithm
 
-    :param precision:
+    :param ctx:
     :return:
     """
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 10
-
+    with decimal.localcontext(ctx):
         # Initial conditions
         a = D(1)
         b = 1 / D(2).sqrt()
@@ -198,14 +226,9 @@ def gauss_legendre(*, precision: int = PRECISION) -> D:
             p_ = 2 * p
 
             if a_ + b_ == 2 * a_ == 2 * b_:
-                res = (a_ + b_) ** 2 / (4 * t_)
-                break
+                return (a_ + b_) ** 2 / (4 * t_)
 
             a, b, t, p = a_, b_, t_, p_
-
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 1
-        return +res
 
 
 def leibniz_formula(*, precision: int = PRECISION) -> D:
@@ -218,11 +241,11 @@ def leibniz_formula(*, precision: int = PRECISION) -> D:
     :return:
     """
     with decimal.localcontext() as ctx:
-        ctx.prec = precision + 2
+        ctx.prec = precision + 10
 
         sum_ = _summation(
             lambda k: (1 / D(2 * k + 1)) * D(-1) ** k,
-            context=ctx
+            precision=ctx.prec
         )
 
     return +(4 * sum_)
@@ -238,11 +261,11 @@ def madhava_series(*, precision: int = PRECISION) -> D:
     :return:
     """
     with decimal.localcontext() as ctx:
-        ctx.prec = precision + 2
+        ctx.prec = precision + 10
 
         sum_ = _summation(
             lambda k: (-1 / D(3)) ** k / (2 * k + 1),
-            context=ctx
+            precision=ctx.prec
         )
 
     return +(D(12).sqrt() * sum_)
@@ -255,11 +278,11 @@ def newton_formula(*, precision: int = PRECISION) -> D:
     :return:
     """
     with decimal.localcontext() as ctx:
-        ctx.prec = precision + 2
+        ctx.prec = precision + 10
 
         sum_ = _summation(
             lambda k: D(2) ** k * D(factorial(k)) ** 2 / D(factorial(2 * k + 1)),
-            context=ctx
+            precision=ctx.prec
         )
 
     return +(2 * sum_)
@@ -272,14 +295,18 @@ def nilakantha_formula(*, precision: int = PRECISION) -> D:
     :return:
     """
     with decimal.localcontext() as ctx:
-        ctx.prec = precision + 2
+        ctx.prec = precision + 10
 
         sum_ = _summation(
             lambda k: 1 / D((2 * k + 2) * (2 * k + 3) * (2 * k + 4)) * D(-1) ** k,
-            context=ctx
+            precision=ctx.prec
         )
+        res = 4 * sum_ + D(3)
 
-    return +(4 * sum_ + D(3))
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 1
+
+        return +res
 
 
 def ramanujan_formula(*, precision: int = PRECISION) -> D:
@@ -289,7 +316,7 @@ def ramanujan_formula(*, precision: int = PRECISION) -> D:
     :return:
     """
     with decimal.localcontext() as ctx:
-        ctx.prec = precision + 2
+        ctx.prec = precision + 10
 
         # Ramanujan-Sato series generalization
         s = lambda k: D(factorial(4 * k)) / (D(factorial(k)) ** 4)
@@ -297,7 +324,7 @@ def ramanujan_formula(*, precision: int = PRECISION) -> D:
 
         sum_ = _summation(
             lambda k: s(k) * (a * k + b) / (c ** k),
-            context=ctx
+            precision=ctx.prec
         )
 
     return +(1 / (2 * D(2).sqrt() / 9801 * sum_))
@@ -313,7 +340,7 @@ def viete_formula(*, precision: int = PRECISION) -> D:
     :return:
     """
     with decimal.localcontext() as ctx:
-        ctx.prec = precision + 2
+        ctx.prec = precision + 10
 
         # Initial conditions
         product_ = D(1)
@@ -323,11 +350,15 @@ def viete_formula(*, precision: int = PRECISION) -> D:
             term = (D(2) + 2 * term).sqrt() / 2
 
             if product_ * term == product_:
+                res = 2 / product_
                 break
 
             product_ *= term
 
-    return +(2 / product_)
+    with decimal.localcontext() as ctx:
+        ctx.prec = precision + 1
+
+        return +res
 
 
 def wallis_product(*, precision: int = PRECISION) -> D:
@@ -340,11 +371,11 @@ def wallis_product(*, precision: int = PRECISION) -> D:
     :return:
     """
     with decimal.localcontext() as ctx:
-        ctx.prec = precision + 2
+        ctx.prec = precision + 10
 
         product_ = _product(
             lambda k: D(4 * k ** 2) / D(4 * k ** 2 - 1),
-            context=ctx
+            precision=ctx.prec
         )
 
     return +(2 / product_)
