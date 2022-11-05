@@ -87,6 +87,33 @@ def _product(func: typing.Callable[[int], D], ctx: decimal.Context) -> D:
             k += 1
 
 
+@_precision
+def bbp(ctx: decimal.Context) -> D:
+    r"""
+
+    :param ctx:
+    :return:
+    """
+    # Initial conditions
+    sum_ = D(0)
+    k: int = 0
+
+    while True:
+        term = 1 / D(16) ** D(k) * sum([
+            4 / D(8 * k + 1),
+            -2 / D(8 * k + 4),
+            -1 / D(8 * k + 5),
+            -1 / D(8 * k + 6)
+        ])
+
+        # Test for convergence
+        if sum_ + term == sum_:
+            return sum_
+
+        sum_ += term
+        k += 1
+
+
 class BorweinAlgorithm:
     r"""
     `Wikipedia`_
