@@ -30,27 +30,40 @@ def _precision(func: typing.Callable[[D], D]) -> typing.Callable:
     :param func:
     :return:
     """
-    def wrapper(x: D, precision: int = PRECISION) -> D:
+    def wrapper(x: D, prec: int = None) -> D:
         """
 
         :param x:
-        :param precision:
+        :param prec:
         :return:
         """
         with decimal.localcontext() as ctx:
-            ctx.prec = precision + 3
+            ctx.prec = (PRECISION if prec is None else prec) + 3
 
             res = func(x)
 
         with decimal.localcontext() as ctx:
-            ctx.prec = precision + 1
+            ctx.prec = (PRECISION if prec is None else prec) + 1
 
-            return +res
+            return +res.normalize()
 
     return wrapper
 
 
 # ------------------------------------ Trigonometric Functions ------------------------------------
+
+
+UNIT_CIRCLE = [
+    lambda x: ((x + PI / 2) / PI) % 1 == 0,     # x = k(π) - π/2
+    lambda x: ((x + PI / 3) / PI) % 1 == 0,     # x = k(π) - π/3
+    lambda x: ((x + PI / 4) / PI) % 1 == 0,     # x = k(π) - π/4
+    lambda x: ((x + PI / 6) / PI) % 1 == 0,     # x = k(π) - π/6
+    lambda x: (x / PI) % 1 == 0,                # x = k(π)
+    lambda x: ((x - PI / 6) / PI) % 1 == 0,     # x = k(π) + π/6
+    lambda x: ((x - PI / 4) / PI) % 1 == 0,     # x = k(π) + π/4
+    lambda x: ((x - PI / 3) / PI) % 1 == 0,     # x = k(π) + π/3
+    lambda x: ((x - PI / 2) / PI) % 1 == 0      # x = k(π) + π/2
+]
 
 
 @_precision
@@ -60,35 +73,16 @@ def sine(x: D) -> D:
     :param x:
     :return:
     """
-    # x = k(π) - π/2 => sin(x) = -1
-    if ((x + PI / 2) / PI) % 1 == 0:
-        return -D(1)
-    # x = k(π) - π/3 => sin(x) = -√(3)/2
-    elif ((x + PI / 3) / PI) % 1 == 0:
-        return -D(3).sqrt() / 2
-    # x = k(π) - π/4 => sin(x) = -√(2)/2
-    elif ((x + PI / 4) / PI) % 1 == 0:
-        return -D(2).sqrt() / 2
-    # x = k(π) - π/6 => sin(x) = -1/2
-    elif ((x + PI / 6) / PI) % 1 == 0:
-        return -1 / D(2)
-    # x = k(π) => sin(x) = 0
-    elif (x / PI) % 1 == 0:
-        return D(0)
-    # x = k(π) + π/6 => sin(x) = 1/2
-    elif ((x - PI / 6) / PI) % 1 == 0:
-        return 1 / D(2)
-    # x = k(π) + π/4 => sin(x) = √(2)/2
-    elif ((x - PI / 4) / PI) % 1 == 0:
-        return D(2).sqrt() / 2
-    # x = k(π) + π/3 => sin(x) = √(3)/2
-    elif ((x - PI / 3) / PI) % 1 == 0:
-        return D(3).sqrt() / 2
-    # x = k(π) + π/2 => sin(x) = 1
-    elif ((x - PI / 2) / PI) % 1 == 0:
-        return D(1)
-    else:
-        return sum(_sine(x))
+    unit_circle = [
+        -D(1), -D(3).sqrt() / 2, -D(2).sqrt() / 2, -1 / D(2),
+        D(0),
+        1 / D(3), D(2).sqrt() / 2, D(3).sqrt() / 2, D(1)
+    ]
+
+    for func, val in zip(UNIT_CIRCLE, unit_circle):
+        if func(x):
+            return val
+    return sum(_sine(x))
 
 
 @_precision
