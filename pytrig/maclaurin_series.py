@@ -47,6 +47,8 @@ def maclaurin_expansion(func: typing.Callable[[int, D, decimal.Context], D]) -> 
     return wrapper
 
 
+# ------------------------------------ Trigonometric Functions ------------------------------------
+
 @maclaurin_expansion
 def sine(n: int, x: D, ctx: decimal.Context) -> D:
     r"""
@@ -79,6 +81,8 @@ def cosine(n: int, x: D, ctx: decimal.Context) -> D:
         return D(-1) ** n / D(factorial(2 * n)) * (x ** (2 * n))
 
 
+# -------------------------------- Inverse Trigonometric Functions --------------------------------
+
 @maclaurin_expansion
 def arcsine(n: int, x: D, ctx: decimal.Context) -> D:
     r"""
@@ -92,11 +96,7 @@ def arcsine(n: int, x: D, ctx: decimal.Context) -> D:
     :return: The value of the :math:`nth` term of the evaluated Maclaurin series expansion
     """
     with decimal.localcontext(ctx):
-        return D(
-            factorial(2 * n)
-        ) / (
-                D(4 ** n) * D(factorial(n)) ** 2 * D(2 * n + 1)
-        ) * (x ** (2 * n + 1))
+        return D(factorial(2 * n)) / (D(4 ** n) * D(factorial(n)) ** 2 * D(2 * n + 1)) * (x ** (2 * n + 1))
 
 
 @maclaurin_expansion
@@ -113,3 +113,59 @@ def arctangent(n: int, x: D, ctx: decimal.Context) -> D:
     """
     with decimal.localcontext(ctx):
         return D(-1) ** n / D(2 * n + 1) * (x ** (2 * n + 1))
+
+
+# -------------------------------------- Hyperbolic Functions -------------------------------------
+
+@maclaurin_expansion
+def hyperbolic_sine(n: int, x: D, ctx: decimal.Context) -> D:
+    r"""
+
+    :param n:
+    :param x:
+    :param ctx:
+    :return:
+    """
+    with decimal.localcontext(ctx):
+        return x ** D(2 * n + 1) / D(factorial(2 * n + 1))
+
+
+@maclaurin_expansion
+def hyperbolic_cosine(n: int, x: D, ctx: decimal.Context) -> D:
+    r"""
+
+    :param n:
+    :param x:
+    :param ctx:
+    :return:
+    """
+    with decimal.localcontext(ctx):
+        return x ** (2 * n) / D(factorial(2 * n))
+
+
+# ---------------------------------- Inverse Hyperbolic Functions ---------------------------------
+
+@maclaurin_expansion
+def hyperbolic_arcsine(n: int, x: D, ctx: decimal.Context) -> D:
+    r"""
+
+    :param n:
+    :param x:
+    :param ctx:
+    :return:
+    """
+    with decimal.localcontext(ctx):
+        return (D(-1) ** n * D(factorial(2 * n))) / (D(4) ** n * D(factorial(n)) ** 2 * (2 * n + 1)) * x ** (2 * n + 1)
+
+
+@maclaurin_expansion
+def hyperbolic_arctangent(n: int, x: D, ctx: decimal.Context) -> D:
+    r"""
+
+    :param n:
+    :param x:
+    :param ctx:
+    :return:
+    """
+    with decimal.localcontext(ctx):
+        return x ** (2 * n + 1) / (2 * n + 1)
