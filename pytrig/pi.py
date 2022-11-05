@@ -304,25 +304,23 @@ def nilakantha_formula(*, precision: int = PRECISION) -> D:
         return +res
 
 
-def ramanujan_formula(*, precision: int = PRECISION) -> D:
+@_precision
+def ramanujan_formula(ctx: decimal.Context) -> D:
     """
 
-    :param precision:
+    :param ctx:
     :return:
     """
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 10
-
+    with decimal.localcontext(ctx):
         # Ramanujan-Sato series generalization
-        s = lambda k: D(factorial(4 * k)) / (D(factorial(k)) ** 4)
         a, b, c = D(26390), D(1103), D(396)
 
         sum_ = _summation(
-            lambda k: s(k) * (a * k + b) / (c ** k),
+            lambda k: D(factorial(4 * k)) / (D(factorial(k)) ** 4) * (a * k + b) / (c ** (4 * k)),
             ctx
         )
 
-    return +(1 / (2 * D(2).sqrt() / 9801 * sum_))
+        return 1 / ((2 * D(2).sqrt() / D(99) ** 2) * sum_)
 
 
 @_precision
