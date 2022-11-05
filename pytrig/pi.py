@@ -266,21 +266,20 @@ def madhava_series(ctx: decimal.Context) -> D:
         return D(12).sqrt() * sum_
 
 
-def newton_formula(*, precision: int = PRECISION) -> D:
+@_precision
+def newton_formula(ctx: decimal.Context) -> D:
     r"""
 
-    :param precision:
+    :param ctx:
     :return:
     """
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 10
-
+    with decimal.localcontext(ctx):
         sum_ = _summation(
             lambda k: D(2) ** k * D(factorial(k)) ** 2 / D(factorial(2 * k + 1)),
             ctx
         )
 
-    return +(2 * sum_)
+        return 2 * sum_
 
 
 def nilakantha_formula(*, precision: int = PRECISION) -> D:
