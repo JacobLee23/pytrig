@@ -350,6 +350,22 @@ def ramanujan_formula(ctx: decimal.Context) -> D:
 
 
 @_precision
+def stormer_formula(ctx: decimal.Context) -> D:
+    r"""
+
+    :param ctx:
+    :return:
+    """
+    with decimal.localcontext(ctx):
+        return 4 * sum([
+            44 * sum(arctangent(1 / D(57))),
+            7 * sum(arctangent(1 / D(239))),
+            -12 * sum(arctangent(1 / D(682))),
+            24 * sum(arctangent(1 / D(12943)))
+        ])
+
+
+@_precision
 def takano_formula(ctx: decimal.Context) -> D:
     r"""
 
