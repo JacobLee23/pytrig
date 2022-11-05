@@ -9,8 +9,34 @@ from math import factorial
 import typing
 
 from .constants import PRECISION
+from .maclaurin_series import arctangent
 
 D = decimal.Decimal
+
+
+def _precision(func: typing.Callable[[decimal.Context], D]) -> typing.Callable:
+    """
+
+    :param func:
+    :return:
+    """
+    def wrapper(precision: int = PRECISION) -> D:
+        """
+
+        :param precision:
+        :return:
+        """
+        with decimal.localcontext() as ctx:
+            ctx.prec = precision + 3
+
+            res = func(ctx)
+
+        with decimal.localcontext() as ctx:
+            ctx.prec = precision + 1
+
+            return +res
+
+    return wrapper
 
 
 def _summation(func: typing.Callable[[int], D], ctx: decimal.Context) -> D:
@@ -53,31 +79,6 @@ def _product(func: typing.Callable[[int], D], ctx: decimal.Context) -> D:
 
             product_ *= term
             k += 1
-
-
-def _precision(func: typing.Callable[[decimal.Context], D]) -> typing.Callable:
-    """
-
-    :param func:
-    :return:
-    """
-    def wrapper(precision: int = PRECISION) -> D:
-        """
-
-        :param precision:
-        :return:
-        """
-        with decimal.localcontext() as ctx:
-            ctx.prec = precision + 2
-
-            res = func(ctx)
-
-        with decimal.localcontext() as ctx:
-            ctx.prec = precision + 1
-
-            return +res
-
-    return wrapper
 
 
 class BorweinAlgorithm:
@@ -181,21 +182,15 @@ def chudnovsky_algorithm(*, precision: int = PRECISION) -> D:
     return +(1 / (12 * sum_))
 
 
-def euler_formula(*, precision: int = PRECISION) -> D:
+@_precision
+def euler_formula(ctx: decimal.Context) -> D:
     r"""
 
-    :param precision:
+    :param ctx:
     :return:
     """
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 10
-
-        sum_ = _summation(
-            lambda k: 1 / D(k) ** 2,
-            ctx
-        )
-
-    return +(6 * sum_).sqrt()
+    with decimal.localcontext(ctx):
+        return 20 * sum(arctangent(1 / D(7))) + 8 * sum(arctangent(D(3) / D(79)))
 
 
 @_precision
