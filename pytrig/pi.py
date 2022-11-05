@@ -330,18 +330,17 @@ def ramanujan_formula(*, precision: int = PRECISION) -> D:
     return +(1 / (2 * D(2).sqrt() / 9801 * sum_))
 
 
-def viete_formula(*, precision: int = PRECISION) -> D:
+@_precision
+def viete_formula(ctx: decimal.Context) -> D:
     r"""
     `Wikipedia`_
 
     .. _Wikipedia: https://en.wikipedia.org/wiki/Vi%C3%A8te%27s_formula
 
-    :param precision:
+    :param ctx:
     :return:
     """
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 10
-
+    with decimal.localcontext(ctx):
         # Initial conditions
         product_ = D(1)
         term = 0
@@ -350,15 +349,9 @@ def viete_formula(*, precision: int = PRECISION) -> D:
             term = (D(2) + 2 * term).sqrt() / 2
 
             if product_ * term == product_:
-                res = 2 / product_
-                break
+                return 2 / product_
 
             product_ *= term
-
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 1
-
-        return +res
 
 
 def wallis_product(*, precision: int = PRECISION) -> D:
