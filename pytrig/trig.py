@@ -2,18 +2,25 @@
 
 """
 
-from decimal import Decimal
+import decimal
 
-from .constants import INF, NINF
+from . import pi
 from .maclaurin_series import sine as _sine
 from .maclaurin_series import cosine as _cosine
 from .maclaurin_series import arcsine as _arcsine
 from .maclaurin_series import arctangent as _arctangent
 
+D = decimal.Decimal
+
+PI = pi.chudnovsky_algorithm()
+INF = D("Infinity")
+NINF = D("-Infinity")
+
+
 # ------------------------------------ Trigonometric Functions -------------------------------------
 
 
-def sine(x: Decimal) -> Decimal:
+def sine(x: D) -> D:
     r"""
 
     :param x:
@@ -22,7 +29,7 @@ def sine(x: Decimal) -> Decimal:
     return sum(_sine(x))
 
 
-def cosine(x: Decimal) -> Decimal:
+def cosine(x: D) -> D:
     r"""
 
     :param x:
@@ -31,7 +38,7 @@ def cosine(x: Decimal) -> Decimal:
     return sum(_cosine(x))
 
 
-def tangent(x: Decimal) -> Decimal:
+def tangent(x: D) -> D:
     r"""
 
     :param x:
@@ -43,7 +50,7 @@ def tangent(x: Decimal) -> Decimal:
         return INF if sine(x) > 0 else NINF
 
 
-def secant(x: Decimal) -> Decimal:
+def secant(x: D) -> D:
     r"""
 
     :param x:
@@ -55,7 +62,7 @@ def secant(x: Decimal) -> Decimal:
         return INF if sine(x) > 0 else NINF
 
 
-def cosecant(x: Decimal) -> Decimal:
+def cosecant(x: D) -> D:
     r"""
 
     :param x:
@@ -67,7 +74,7 @@ def cosecant(x: Decimal) -> Decimal:
         return INF if cosine(x) > 0 else NINF
 
 
-def cotangent(x: Decimal) -> Decimal:
+def cotangent(x: D) -> D:
     r"""
 
     :param x:
@@ -87,7 +94,7 @@ sec, csc, cot = secant, cosecant, cotangent
 # -------------------------------- Inverse Trigonometric Functions ---------------------------------
 
 
-def arcsine(x: Decimal) -> Decimal:
+def arcsine(x: D) -> D:
     r"""
 
     :param x:
@@ -99,14 +106,14 @@ def arcsine(x: Decimal) -> Decimal:
         )
 
     if x == -1:
-        return # -PI / 2
+        return -PI / 2
     elif x == 1:
-        return # PI / 2
+        return PI / 2
     else:
         return sum(_arcsine(x))
 
 
-def arccosine(x: Decimal) -> Decimal:
+def arccosine(x: D) -> D:
     r"""
 
     :param x:
@@ -118,30 +125,30 @@ def arccosine(x: Decimal) -> Decimal:
         )
 
     if x == -1:
-        return # PI
+        return PI
     elif x == 1:
-        return Decimal(0)
+        return D(0)
     else:
-        return # PI / 2 - arcsine(x)
+        return PI / 2 - arcsine(x)
 
 
-def arctangent(x: Decimal) -> Decimal:
+def arctangent(x: D) -> D:
     r"""
 
     :param x:
     :return:
     """
     if x is NINF:
-        return # -PI / 2
+        return -PI / 2
     elif x is INF:
-        return # PI / 2
+        return PI / 2
     elif -1 < x < 1:
         return sum(_arctangent(x))
     else:
-        return arcsine(x / (Decimal(1) + x ** 2).sqrt())
+        return arcsine(x / (D(1) + x ** 2).sqrt())
 
 
-def arcsecant(x: Decimal) -> Decimal:
+def arcsecant(x: D) -> D:
     r"""
 
     :param x:
@@ -153,14 +160,14 @@ def arcsecant(x: Decimal) -> Decimal:
         )
 
     if x is NINF:
-        return # -PI / 2
+        return -PI / 2
     elif x is INF:
-        return # PI / 2
+        return PI / 2
     else:
         return arccosine(1 / x)
 
 
-def arccosecant(x: Decimal) -> Decimal:
+def arccosecant(x: D) -> D:
     r"""
 
     :param x:
@@ -172,23 +179,23 @@ def arccosecant(x: Decimal) -> Decimal:
         )
 
     if x is NINF:
-        return # PI
+        return PI
     elif x is INF:
-        return Decimal(0)
+        return D(0)
     else:
         return arcsine(1 / x)
 
 
-def arccotangent(x: Decimal) -> Decimal:
+def arccotangent(x: D) -> D:
     r"""
 
     :param x:
     :return:
     """
     if x is NINF:
-        return # PI
+        return PI
     elif x is INF:
-        return Decimal(0)
+        return D(0)
     else:
         return arctangent(1 / x)
 
