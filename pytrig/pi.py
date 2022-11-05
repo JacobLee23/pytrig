@@ -1,6 +1,8 @@
 """
 `Wikipedia`_
 
+Vestermark, H. (2022). Practical Implementation of π Algorithms. Retrieved November 4, 2022.
+
 .. _Wikipedia: https://en.wikipedia.org/wiki/Approximations_of_%CF%80
 """
 
@@ -84,8 +86,6 @@ def _product(func: typing.Callable[[int], D], ctx: decimal.Context) -> D:
 class BorweinAlgorithm:
     r"""
     `Wikipedia`_
-
-    Vestermark, H. (2022). Practical Implementation of π Algorithms. Retrieved November 4, 2022.
 
     .. _Wikipedia: https://en.wikipedia.org/wiki/Borwein%27s_algorithm
     """
@@ -221,6 +221,32 @@ class BorweinAlgorithm:
 
                 k += 1
                 a, r, s = a_, r_, s_
+
+
+@_precision
+def brent_salamin_method(ctx: decimal.Context) -> D:
+    r"""
+
+    :param ctx:
+    :return:
+    """
+    with decimal.localcontext(ctx):
+        # Initial conditions
+        k = 0
+        a = D(1)
+        b = 1 / D(2).sqrt()
+        c = 1 / D(2)
+
+        while True:
+            a_ = (a + b) / 2
+            b_ = (a * b).sqrt()
+            c_ = c - 2 ** (k + 1) * (a_ - b) ** 2
+
+            if a_ + b_ == 2 * a_ == 2 * b_:
+                return 2 * a_ ** 2 / c_
+
+            k += 1
+            a, b, c = a_, b_, c_
 
 
 def chudnovsky_algorithm(*, precision: int = PRECISION) -> D:
