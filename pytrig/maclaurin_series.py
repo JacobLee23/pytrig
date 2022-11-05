@@ -6,7 +6,7 @@ import decimal
 from math import factorial
 import typing
 
-from .constants import PRECISION
+from ._precision import PRECISION
 
 D = decimal.Decimal
 
