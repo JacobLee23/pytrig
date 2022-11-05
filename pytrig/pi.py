@@ -49,12 +49,14 @@ def _summation(func: typing.Callable[[int], D], ctx: decimal.Context) -> D:
     :return:
     """
     with decimal.localcontext(ctx):
+        # Initial conditions
         sum_ = D(0)
         k: int = 0
 
         while True:
             term = func(k)
 
+            # Test for convergence
             if sum_ + term == sum_:
                 return sum_
 
@@ -70,12 +72,14 @@ def _product(func: typing.Callable[[int], D], ctx: decimal.Context) -> D:
     :return:
     """
     with decimal.localcontext(ctx):
+        # Initial conditions
         product_ = D(1)
         k: int = 1
 
         while True:
             term = func(k)
 
+            # Test for convergence
             if product_ * term == product_:
                 return product_
 
@@ -108,6 +112,7 @@ class BorweinAlgorithm:
                 b_ = (1 + b) * a.sqrt() / (a + b)
                 p_ = (1 + a_) * p * b_ / (1 + b_)
 
+                # Test for convergence
                 if p == p_:
                     return p_
 
@@ -132,7 +137,8 @@ class BorweinAlgorithm:
                 s_ = (r_ - 1) / 2
                 a_ = r_ ** 2 * a - 3 ** k * (r_ ** 2 - 1)
 
-                if a + D(1) == a_ + D(1):
+                # Test for convergence
+                if a == a_:
                     return 1 / a_
 
                 k += 1
@@ -156,7 +162,8 @@ class BorweinAlgorithm:
                 y_ = (1 - (1 - y ** 4) ** (1 / D(4))) / (1 + (1 - y ** 4) ** (1 / D(4)))
                 a_ = a * (1 + y_) ** 4 - 2 ** (2 * k + 3) * y_ * (1 + y_ + y_ ** 2)
 
-                if a + D(1) == a_ + D(1):
+                # Test for convergence
+                if a == a_:
                     return 1 / a_
 
                 k += 1
@@ -172,8 +179,6 @@ class BorweinAlgorithm:
         """
 
         with decimal.localcontext(ctx):
-            ctx.prec *= 2
-
             # Initial conditions
             k = 0
             a = 1 / D(2)
@@ -186,7 +191,8 @@ class BorweinAlgorithm:
                 a_ = s ** 2 * a - 5 ** k * ((s ** 2 - 5) / 2 + (s * (s ** 2 - 2 * s + 5)).sqrt())
                 s_ = 25 / (((z_ + x_ / z_ + 1) ** 2) * s)
 
-                if a + D(1) == a_ + D(1):
+                # Test for convergence
+                if a == a_:
                     return 1 / a_
 
                 k += 1
@@ -216,7 +222,8 @@ class BorweinAlgorithm:
                 s_ = (1 - r) ** 3 / ((t_ + 2 * u_) * v_)
                 r_ = (1 - s_ ** 3) ** (1 / D(3))
 
-                if k != 1 and a + D(1) == a_ + D(1):
+                # Test for convergence
+                if k != 1 and a == a_:
                     return 1 / a_
 
                 k += 1
@@ -242,11 +249,12 @@ def brent_salamin_method(ctx: decimal.Context) -> D:
             b_ = (a * b).sqrt()
             c_ = c - 2 ** (k + 1) * (a_ - b) ** 2
 
+            # Test for convergence
             if a_ + b_ == 2 * a_ == 2 * b_:
                 return 2 * a_ ** 2 / c_
 
-            k += 1
             a, b, c = a_, b_, c_
+            k += 1
 
 
 @_precision
@@ -264,6 +272,7 @@ def chudnovsky_algorithm(ctx: decimal.Context) -> D:
         sum_ = D(0)
         k: int = 0
 
+        # Ramanujan-Sato series generalization
         c = 426880 * D(10005).sqrt()
         m = lambda n: D(factorial(6 * k)) / (D(factorial(3 * k)) * D(factorial(k)) ** 3)
         l = lambda n: D(545140134 * n + 13591409)
@@ -272,6 +281,7 @@ def chudnovsky_algorithm(ctx: decimal.Context) -> D:
         while True:
             term = m(k) * l(k) / x(k)
 
+            # Test for convergence
             if sum_ + term == sum_:
                 return c * sum_ ** -1
 
@@ -301,16 +311,20 @@ def euler_product(ctx: decimal.Context) -> D:
     :return:
     """
     def odd_primes() -> typing.Generator[int, None, None]:
-        """
+        r"""
+        Creates an interator that returns odd prime number in the interval :math:`[3, \infinity)`.
 
-        :return:
+        :return: A generator of odd prime numbers
         """
-        yield 3
-        n = 4
+        n: int = 3
+        yield n
 
         while True:
+            n += 1
             prime = True
-            for i in range(2, int(n ** (1/2)) + 1):
+
+            for i in range(2, int(D(n).sqrt()) + 1):
+                # Test for divisibility
                 if n % i == 0:
                     prime = False
                     break
@@ -318,16 +332,17 @@ def euler_product(ctx: decimal.Context) -> D:
             if prime:
                 yield n
 
-            n += 1
-
     with decimal.localcontext(ctx):
+        # A generator of odd prime numbers
         primes = odd_primes()
 
+        # Initial conditions
         product_ = D(1)
 
         for x in primes:
             term = D(x) / D((x + 1) if x % 4 == 3 else (x - 1))
 
+            # Test for convergence
             if product_ * term == product_:
                 return 4 * product_
 
@@ -357,6 +372,7 @@ def gauss_legendre(ctx: decimal.Context) -> D:
             t_ = t - p * (a - a_) ** 2
             p_ = 2 * p
 
+            # Test for convergence
             if a_ + b_ == 2 * a_ == 2 * b_:
                 return (a_ + b_) ** 2 / (4 * t_)
 
@@ -497,11 +513,12 @@ def viete_formula(ctx: decimal.Context) -> D:
     with decimal.localcontext(ctx):
         # Initial conditions
         product_ = D(1)
-        term = 0
+        term = D(0)
 
         while True:
             term = (D(2) + 2 * term).sqrt() / 2
 
+            # Test for convergence
             if product_ * term == product_:
                 return 2 / product_
 
