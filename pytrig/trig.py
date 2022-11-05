@@ -11,6 +11,11 @@ from .maclaurin_series import sine as _sine
 from .maclaurin_series import cosine as _cosine
 from .maclaurin_series import arcsine as _arcsine
 from .maclaurin_series import arctangent as _arctangent
+from .maclaurin_series import hyperbolic_sine as _hyperbolic_sine
+from .maclaurin_series import hyperbolic_cosine as _hyperbolic_cosine
+from .maclaurin_series import hyperbolic_arcsine as _hyperbolic_arcsine
+from .maclaurin_series import hyperbolic_arctangent as _hyperbolic_arctangent
+
 
 D = decimal.Decimal
 
@@ -45,7 +50,7 @@ def _precision(func: typing.Callable[[D], D]) -> typing.Callable:
     return wrapper
 
 
-# ------------------------------------ Trigonometric Functions -------------------------------------
+# ------------------------------------ Trigonometric Functions ------------------------------------
 
 
 @_precision
@@ -125,7 +130,7 @@ sin, cos, tan = sine, cosine, tangent
 sec, csc, cot = secant, cosecant, cotangent
 
 
-# -------------------------------- Inverse Trigonometric Functions ---------------------------------
+# -------------------------------- Inverse Trigonometric Functions --------------------------------
 
 
 @_precision
@@ -243,3 +248,161 @@ def arccotangent(x: D) -> D:
 # Shorthands for inverse trigonometric functions
 arcsin, arccos, arctan = arcsine, arccosine, arctangent
 arcsec, arccsc, arccot = arcsecant, arccosecant, arccotangent
+
+
+# -------------------------------------- Hyperbolic Functions -------------------------------------
+
+@_precision
+def hyperbolic_sine(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    return sum(_hyperbolic_sine(x))
+
+
+@_precision
+def hyperbolic_cosine(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    return sum(_hyperbolic_cosine(x))
+
+
+@_precision
+def hyperbolic_tangent(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    return hyperbolic_sine(x) / hyperbolic_cosine(x)
+
+
+@_precision
+def hyperbolic_secant(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    return 1 / hyperbolic_cosine(x)
+
+
+@_precision
+def hyperbolic_cosecant(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    try:
+        return 1 / hyperbolic_sine(x)
+    except ZeroDivisionError:
+        return INF if hyperbolic_sine(x) > 0 else NINF
+
+
+@_precision
+def hyperbolic_cotangent(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    try:
+        return hyperbolic_cosine(x) / hyperbolic_sine(x)
+    except ZeroDivisionError:
+        return INF if hyperbolic_sine(x) > 0 else NINF
+
+
+sinh, cosh, tanh = hyperbolic_sine, hyperbolic_cosine, hyperbolic_tangent
+sech, csch, coth = hyperbolic_secant, hyperbolic_cosecant, hyperbolic_cotangent
+
+
+# ---------------------------------- Inverse Hyperbolic Functions ----------------------------------
+
+@_precision
+def hyperbolic_arcsine(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    return sum(_hyperbolic_arcsine(x))
+
+
+@_precision
+def hyperbolic_arccosine(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    if not abs(x) > 1:
+        raise ValueError(
+            "Value of argument 'x' is outside the domain of arcosh(x)"
+        )
+    return hyperbolic_arcsine(x ** 2 - 1)
+
+
+@_precision
+def hyperbolic_arctangent(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    if not abs(x) < 1:
+        raise ValueError(
+            "Value of argument 'x' is outside the domain of artanh(x)"
+        )
+    return sum(_hyperbolic_arctangent(x))
+
+
+@_precision
+def hyperbolic_arcsecant(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    if not 0 < x <= 1:
+        raise ValueError(
+            "Value of argument 'x' is outside the domain of arsech(x)"
+        )
+    return hyperbolic_cosine(1 / x)
+
+
+@_precision
+def hyperbolic_arccosecant(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    if not abs(x) > 1:
+        raise ValueError(
+            "Value of argument 'x' is outside the domain of arcsch(x)"
+        )
+    return hyperbolic_arcsine(1 / x)
+
+
+@_precision
+def hyperbolic_arccotangent(x: D) -> D:
+    r"""
+
+    :param x:
+    :return:
+    """
+    if not abs(x) > 1:
+        raise ValueError(
+            "Value of argument 'x' is outside the domain of artanh(x)"
+        )
+    return hyperbolic_tangent(1 / x)
+
+
+arsinh, arcosh, artanh = hyperbolic_arcsine, hyperbolic_arccosine, hyperbolic_arctangent
+arsech, arcsch, arcoth = hyperbolic_arcsecant, hyperbolic_arccosecant, hyperbolic_arccotangent
