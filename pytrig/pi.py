@@ -222,24 +222,23 @@ def gauss_legendre(ctx: decimal.Context) -> D:
             a, b, t, p = a_, b_, t_, p_
 
 
-def leibniz_formula(*, precision: int = PRECISION) -> D:
+@_precision
+def leibniz_formula(ctx: decimal.Context) -> D:
     """
     `Wikipedia`_
 
     .. _Wikipedia: https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80
 
-    :param precision:
+    :param ctx:
     :return:
     """
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 10
-
+    with decimal.localcontext(ctx):
         sum_ = _summation(
-            lambda k: (1 / D(2 * k + 1)) * D(-1) ** k,
+            lambda k: (1 / D(4 * k + 1)) - (1 / D(4 * k + 3)),
             ctx
         )
 
-    return +(4 * sum_)
+        return 4 * sum_
 
 
 @_precision
