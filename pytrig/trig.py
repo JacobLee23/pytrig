@@ -60,7 +60,35 @@ def sine(x: D) -> D:
     :param x:
     :return:
     """
-    return sum(_sine(x))
+    # x = k(π) - π/2 => sin(x) = -1
+    if ((x + PI / 2) / PI) % 1 == 0:
+        return -D(1)
+    # x = k(π) - π/3 => sin(x) = -√(3)/2
+    elif ((x + PI / 3) / PI) % 1 == 0:
+        return -D(3).sqrt() / 2
+    # x = k(π) - π/4 => sin(x) = -√(2)/2
+    elif ((x + PI / 4) / PI) % 1 == 0:
+        return -D(2).sqrt() / 2
+    # x = k(π) - π/6 => sin(x) = -1/2
+    elif ((x + PI / 6) / PI) % 1 == 0:
+        return -1 / D(2)
+    # x = k(π) => sin(x) = 0
+    elif (x / PI) % 1 == 0:
+        return D(0)
+    # x = k(π) + π/6 => sin(x) = 1/2
+    elif ((x - PI / 6) / PI) % 1 == 0:
+        return 1 / D(2)
+    # x = k(π) + π/4 => sin(x) = √(2)/2
+    elif ((x - PI / 4) / PI) % 1 == 0:
+        return D(2).sqrt() / 2
+    # x = k(π) + π/3 => sin(x) = √(3)/2
+    elif ((x - PI / 3) / PI) % 1 == 0:
+        return D(3).sqrt() / 2
+    # x = k(π) + π/2 => sin(x) = 1
+    elif ((x - PI / 2) / PI) % 1 == 0:
+        return D(1)
+    else:
+        return sum(_sine(x))
 
 
 @_precision
