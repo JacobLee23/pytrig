@@ -85,8 +85,9 @@ class BorweinAlgorithm:
     r"""
     `Wikipedia`_
 
-    .. _Wikipedia: https://en.wikipedia.org/wiki/Borwein%27s_algorithm
+    Vestermark, H. (2022). Practical Implementation of π Algorithms. Retrieved November 4, 2022.
 
+    .. _Wikipedia: https://en.wikipedia.org/wiki/Borwein%27s_algorithm
     """
     @staticmethod
     @_precision
@@ -134,7 +135,92 @@ class BorweinAlgorithm:
                 if a + D(1) == a_ + D(1):
                     return 1 / a_
 
+                k += 1
                 a, s = a_, s_
+
+    @staticmethod
+    @_precision
+    def quartic(ctx: decimal.Context) -> D:
+        r"""
+
+        :param ctx:
+        :return:
+        """
+        with decimal.localcontext(ctx):
+            # Initial conditions
+            k = 0
+            a = 2 * D(D(2).sqrt() - 1) ** 2
+            y = D(D(2).sqrt() - 1)
+
+            while True:
+                y_ = (1 - (1 - y ** 4) ** (1 / D(4))) / (1 + (1 - y ** 4) ** (1 / D(4)))
+                a_ = a * (1 + y_) ** 4 - 2 ** (2 * k + 3) * y_ * (1 + y_ + y_ ** 2)
+
+                if a + D(1) == a_ + D(1):
+                    return 1 / a_
+
+                k += 1
+                a, y = a_, y_
+
+    @staticmethod
+    @_precision
+    def quintic(ctx: decimal.Context) -> D:
+        r"""
+
+        :param ctx:
+        :return:
+        """
+
+        with decimal.localcontext(ctx):
+            ctx.prec *= 2
+
+            # Initial conditions
+            k = 0
+            a = 1 / D(2)
+            s = 5 * (D(5).sqrt() - 2)
+
+            while True:
+                x_ = 5 / s - 1
+                y_ = (x_ - 1) ** 2 + 7
+                z_ = (x_ / 2 * (y_ + (y_ ** 2 - 4 * x_ ** 3).sqrt())) ** (1 / D(5))
+                a_ = s ** 2 * a - 5 ** k * ((s ** 2 - 5) / 2 + (s * (s ** 2 - 2 * s + 5)).sqrt())
+                s_ = 25 / (((z_ + x_ / z_ + 1) ** 2) * s)
+
+                if a + D(1) == a_ + D(1):
+                    return 1 / a_
+
+                k += 1
+                a, s = a_, s_
+
+    @staticmethod
+    @_precision
+    def nonic(ctx: decimal.Context) -> D:
+        r"""
+
+        :param ctx:
+        :return:
+        """
+        with decimal.localcontext(ctx):
+            # Initial conditions
+            k = 0
+            a = 1 / D(3)
+            r = (D(3).sqrt() - 1) / 2
+            s = (1 - r ** 3) ** (1 / D(3))
+
+            while True:
+                t_ = 1 + 2 * r
+                u_ = (9 * r * (1 + r + r ** 2)) ** (1 / D(3))
+                v_ = t_ ** 2 + t_ * u_ + u_ ** 2
+                w_ = 27 * (1 + s + s ** 2) / v_
+                a_ = w_ * a + 3 ** D(2 * k - 1) * (1 - w_)
+                s_ = (1 - r) ** 3 / ((t_ + 2 * u_) * v_)
+                r_ = (1 - s_ ** 3) ** (1 / D(3))
+
+                if k != 1 and a + D(1) == a_ + D(1):
+                    return 1 / a_
+
+                k += 1
+                a, r, s = a_, r_, s_
 
 
 def chudnovsky_algorithm(*, precision: int = PRECISION) -> D:
