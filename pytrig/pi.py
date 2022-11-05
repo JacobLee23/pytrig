@@ -22,7 +22,7 @@ def _summation(func: typing.Callable[[int], D], ctx: decimal.Context) -> D:
     """
     with decimal.localcontext(ctx):
         sum_ = D(0)
-        k: int = 1
+        k: int = 0
 
         while True:
             term = func(k)
@@ -247,24 +247,23 @@ def leibniz_formula(*, precision: int = PRECISION) -> D:
     return +(4 * sum_)
 
 
-def madhava_series(*, precision: int = PRECISION) -> D:
+@_precision
+def madhava_series(ctx: decimal.Context) -> D:
     r"""
     `Madhava Series`_
 
     .. _Madhava Series: https://en.wikipedia.org/wiki/Madhava_series
 
-    :param precision:
+    :param ctx:
     :return:
     """
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 10
-
+    with decimal.localcontext(ctx):
         sum_ = _summation(
-            lambda k: (-1 / D(3)) ** k / (2 * k + 1),
+            lambda k: D(-3) ** -k / (2 * k + 1),
             ctx
         )
 
-    return +(D(12).sqrt() * sum_)
+        return D(12).sqrt() * sum_
 
 
 def newton_formula(*, precision: int = PRECISION) -> D:
