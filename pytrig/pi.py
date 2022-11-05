@@ -276,25 +276,20 @@ def newton_formula(ctx: decimal.Context) -> D:
         return 2 * sum_
 
 
-def nilakantha_formula(*, precision: int = PRECISION) -> D:
+@_precision
+def nilakantha_formula(ctx: decimal.Context) -> D:
     r"""
 
-    :param precision:
+    :param ctx:
     :return:
     """
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 10
-
+    with decimal.localcontext(ctx):
         sum_ = _summation(
             lambda k: 1 / D((2 * k + 2) * (2 * k + 3) * (2 * k + 4)) * D(-1) ** k,
             ctx
         )
-        res = 4 * sum_ + D(3)
 
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 1
-
-        return +res
+        return 4 * sum_ + D(3)
 
 
 @_precision
