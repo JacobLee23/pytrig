@@ -89,15 +89,14 @@ class BorweinAlgorithm:
 
     """
     @staticmethod
-    def quadratic_convergence(*, precision: int = PRECISION) -> D:
+    @_precision
+    def quadratic(ctx: decimal.Context) -> D:
         """
 
-        :param precision:
+        :param ctx:
         :return:
         """
-        with decimal.localcontext() as ctx:
-            ctx.precision = precision + 2
-
+        with decimal.localcontext(ctx):
             # Initial conditions
             a = D(2).sqrt()
             b = D(0)
@@ -109,22 +108,19 @@ class BorweinAlgorithm:
                 p_ = (1 + a_) * p * b_ / (1 + b_)
 
                 if p == p_:
-                    break
+                    return p_
 
                 a, b, p = a_, b_, p_
 
-            return p_
-
     @staticmethod
-    def cubic_convergence(*, precision: int = PRECISION) -> D:
+    @_precision
+    def cubic(ctx: decimal.Context) -> D:
         """
 
-        :param precision:
+        :param ctx:
         :return:
         """
-        with decimal.localcontext() as ctx:
-            ctx.prec = precision + 2
-
+        with decimal.localcontext(ctx):
             # Initial conditions
             k = 0
             a = 1 / D(3)
@@ -136,11 +132,9 @@ class BorweinAlgorithm:
                 a_ = r_ ** 2 * a - 3 ** k * (r_ ** 2 - 1)
 
                 if a + D(1) == a_ + D(1):
-                    break
+                    return 1 / a_
 
                 a, s = a_, s_
-
-            return 1 / a_
 
 
 def chudnovsky_algorithm(*, precision: int = PRECISION) -> D:
@@ -190,7 +184,10 @@ def euler_formula(ctx: decimal.Context) -> D:
     :return:
     """
     with decimal.localcontext(ctx):
-        return 20 * sum(arctangent(1 / D(7))) + 8 * sum(arctangent(D(3) / D(79)))
+        return sum([
+            20 * sum(arctangent(1 / D(7))),
+            8 * sum(arctangent(D(3) / D(79)))
+        ])
 
 
 @_precision
@@ -350,6 +347,22 @@ def ramanujan_formula(ctx: decimal.Context) -> D:
         )
 
         return 1 / ((2 * D(2).sqrt() / D(99) ** 2) * sum_)
+
+
+@_precision
+def takano_formula(ctx: decimal.Context) -> D:
+    r"""
+
+    :param ctx:
+    :return:
+    """
+    with decimal.localcontext(ctx):
+        return 4 * sum([
+            12 * sum(arctangent(1 / D(49))),
+            32 * sum(arctangent(1 / D(57))),
+            -5 * sum(arctangent(1 / D(239))),
+            12 * sum(arctangent(1 / D(110443)))
+        ])
 
 
 @_precision
