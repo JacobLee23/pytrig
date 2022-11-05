@@ -249,43 +249,34 @@ def brent_salamin_method(ctx: decimal.Context) -> D:
             a, b, c = a_, b_, c_
 
 
-def chudnovsky_algorithm(*, precision: int = PRECISION) -> D:
+@_precision
+def chudnovsky_algorithm(ctx: decimal.Context) -> D:
     r"""
     `Wikipedia`_
 
     .. _Wikipedia: https://en.wikipedia.org/wiki/Chudnovsky_algorithm
 
-    :param precision:
+    :param ctx:
     :return:
     """
-    with decimal.localcontext() as ctx:
-        ctx.prec = precision + 2
-
+    with decimal.localcontext(ctx):
         # Initial conditions
         sum_ = D(0)
         k: int = 0
 
-        while True:
-            term = (
-                (
-                        D(-1) ** k
-                        * D(factorial(6 * k))
-                        * (545140134 * k + 13591409)
-                )
-                / (
-                        D(factorial(3 * k))
-                        * D(factorial(k)) ** 3
-                        * D(640320) ** D(3 * k + 3 / 2)
-                )
-            )
+        c = 426880 * D(10005).sqrt()
+        m = lambda n: D(factorial(6 * k)) / (D(factorial(3 * k)) * D(factorial(k)) ** 3)
+        l = lambda n: D(545140134 * n + 13591409)
+        x = lambda n: D(-262537412640768000) ** n
 
-            if term + D(1) == D(1):
-                break
+        while True:
+            term = m(k) * l(k) / x(k)
+
+            if sum_ + term == sum_:
+                return c * sum_ ** -1
 
             sum_ += term
             k += 1
-
-    return +(1 / (12 * sum_))
 
 
 @_precision
