@@ -3,8 +3,10 @@
 """
 
 import decimal
+import typing
 
 from . import pi
+from ._precision import PRECISION
 from .maclaurin_series import sine as _sine
 from .maclaurin_series import cosine as _cosine
 from .maclaurin_series import arcsine as _arcsine
@@ -17,9 +19,36 @@ INF = D("Infinity")
 NINF = D("-Infinity")
 
 
+def _precision(func: typing.Callable[[D], D]) -> typing.Callable:
+    """
+
+    :param func:
+    :return:
+    """
+    def wrapper(x: D, precision: int = PRECISION) -> D:
+        """
+
+        :param x:
+        :param precision:
+        :return:
+        """
+        with decimal.localcontext() as ctx:
+            ctx.prec = precision + 3
+
+            res = func(x)
+
+        with decimal.localcontext() as ctx:
+            ctx.prec = precision + 1
+
+            return +res
+
+    return wrapper
+
+
 # ------------------------------------ Trigonometric Functions -------------------------------------
 
 
+@_precision
 def sine(x: D) -> D:
     r"""
 
@@ -29,6 +58,7 @@ def sine(x: D) -> D:
     return sum(_sine(x))
 
 
+@_precision
 def cosine(x: D) -> D:
     r"""
 
@@ -38,6 +68,7 @@ def cosine(x: D) -> D:
     return sum(_cosine(x))
 
 
+@_precision
 def tangent(x: D) -> D:
     r"""
 
@@ -50,6 +81,7 @@ def tangent(x: D) -> D:
         return INF if sine(x) > 0 else NINF
 
 
+@_precision
 def secant(x: D) -> D:
     r"""
 
@@ -62,6 +94,7 @@ def secant(x: D) -> D:
         return INF if sine(x) > 0 else NINF
 
 
+@_precision
 def cosecant(x: D) -> D:
     r"""
 
@@ -74,6 +107,7 @@ def cosecant(x: D) -> D:
         return INF if cosine(x) > 0 else NINF
 
 
+@_precision
 def cotangent(x: D) -> D:
     r"""
 
@@ -94,6 +128,7 @@ sec, csc, cot = secant, cosecant, cotangent
 # -------------------------------- Inverse Trigonometric Functions ---------------------------------
 
 
+@_precision
 def arcsine(x: D) -> D:
     r"""
 
@@ -113,6 +148,7 @@ def arcsine(x: D) -> D:
         return sum(_arcsine(x))
 
 
+@_precision
 def arccosine(x: D) -> D:
     r"""
 
@@ -132,6 +168,7 @@ def arccosine(x: D) -> D:
         return PI / 2 - arcsine(x)
 
 
+@_precision
 def arctangent(x: D) -> D:
     r"""
 
@@ -148,6 +185,7 @@ def arctangent(x: D) -> D:
         return arcsine(x / (D(1) + x ** 2).sqrt())
 
 
+@_precision
 def arcsecant(x: D) -> D:
     r"""
 
@@ -167,6 +205,7 @@ def arcsecant(x: D) -> D:
         return arccosine(1 / x)
 
 
+@_precision
 def arccosecant(x: D) -> D:
     r"""
 
@@ -186,6 +225,7 @@ def arccosecant(x: D) -> D:
         return arcsine(1 / x)
 
 
+@_precision
 def arccotangent(x: D) -> D:
     r"""
 
