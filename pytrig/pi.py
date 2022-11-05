@@ -194,6 +194,47 @@ def euler_formula(ctx: decimal.Context) -> D:
 
 
 @_precision
+def euler_product(ctx: decimal.Context) -> D:
+    r"""
+
+    :param ctx:
+    :return:
+    """
+    def odd_primes() -> typing.Generator[int, None, None]:
+        """
+
+        :return:
+        """
+        yield 3
+        n = 4
+
+        while True:
+            prime = True
+            for i in range(2, int(n ** (1/2)) + 1):
+                if n % i == 0:
+                    prime = False
+                    break
+
+            if prime:
+                yield n
+
+            n += 1
+
+    with decimal.localcontext(ctx):
+        primes = odd_primes()
+
+        product_ = D(1)
+
+        for x in primes:
+            term = D(x) / D((x + 1) if x % 4 == 3 else (x - 1))
+
+            if product_ * term == product_:
+                return 4 * product_
+
+            product_ *= term
+
+
+@_precision
 def gauss_legendre(ctx: decimal.Context) -> D:
     """
     `Wikipedia`_
