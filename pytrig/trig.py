@@ -152,10 +152,24 @@ class UnitCircle:
     @classmethod
     def check_angle(cls, x: D, values: typing.List[D], prec: int) -> typing.Optional[D]:
         r"""
+        Checks whether the angle ``x`` is a multiple of one of the 12 special unit circle angles.
 
+        .. note::
 
-        :param x:
-        :param values:
+            Angles are measured in radians.
+
+        Let :math:`n` equal ``prec``. If ``x`` is within ``9*10^{-(n-1)}`` radians of a special
+        unit circle angle :math:`\theta`, then the evaluation of the given trigonometric function
+        at ``x`` will be evaluated to the value of the given trigonometric function at
+        :math:`\theta`.
+
+        In other words, if :math:`T(\theta)` is the given trigonometric function,
+        :math:`f(x)=\frac{\theta-t}{2\pi}` (where :math:`t` is in
+        :py:attr:`UnitCircle.ucircle_angles`), and :math:`|f(x)|<9*10^{-(n-1)}`, then
+        :math:`x` is considered equal to :math:`k(2\pi)+t` and :math:`f(x)=f(k(2\pi)+t)`.
+
+        :param x: The angle to check (in radians)
+        :param values: The values of the function at the corresponding special unit circle angles
         :param prec:
         :return:
         """
@@ -181,16 +195,16 @@ def sine(x: D, prec: int) -> D:
     :param prec:
     :return:
     """
-    # Unit circle values for x ∈ [-π, π)
+    # Unit circle values for x ∈ [0, 2π)
     ucvalues = [
-        D(0),                                               # -x
-        -1 / D(2), -D(2).sqrt() / 2, -D(3).sqrt() / 2,      # QIII
-        -D(1),                                              # -y
-        -D(3).sqrt() / 2, -D(2).sqrt() / 2, -1 / D(2),      # QIV
         D(0),                                               # +x
         1 / D(2), D(2).sqrt() / 2, D(3).sqrt() / 2,         # QI
         D(1),                                               # +y
         D(3).sqrt() / 2, D(2).sqrt() / 2, 1 / D(2),         # QII
+        D(0),                                               # -x
+        -1 / D(2), -D(2).sqrt() / 2, -D(3).sqrt() / 2,      # QIII
+        -D(1),                                              # -y
+        -D(3).sqrt() / 2, -D(2).sqrt() / 2, -1 / D(2),      # QIV
     ]
 
     res = UnitCircle.check_angle(x, ucvalues, prec)
@@ -205,16 +219,16 @@ def cosine(x: D, prec: int) -> D:
     :param prec:
     :return:
     """
-    # Unit circle values for x ∈ [-π, π)
+    # Unit circle values for x ∈ [0, 2π)
     ucvalues = [
-        -D(1),                                              # -x
-        -D(3).sqrt() / 3, -D(2).sqrt() / 2, -1 / D(2),      # QIII
-        D(0),                                               # -y
-        1 / D(2), D(2).sqrt() / 2, D(3).sqrt() / 3,         # QIV
         D(1),                                               # +x
-        D(3).sqrt() / 3, D(2).sqrt() / 2, 1 / D(2),         # QI
+        D(3).sqrt() / 2, D(2).sqrt() / 2, 1 / D(2),         # QI
         D(0),                                               # +y
-        -1 / D(2), -D(2).sqrt() / 2, -D(3).sqrt() / 3,      # QII
+        -1 / D(2), -D(2).sqrt() / 2, -D(3).sqrt() / 2,      # QII
+        -D(1),                                              # -x
+        -D(3).sqrt() / 2, -D(2).sqrt() / 2, -1 / D(2),      # QIII
+        D(0),                                               # -y
+        1 / D(2), D(2).sqrt() / 2, D(3).sqrt() / 2,         # QIV
     ]
 
     res = UnitCircle.check_angle(x, ucvalues, prec)
