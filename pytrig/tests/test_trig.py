@@ -47,3 +47,36 @@ def test_sine(x: D, value: D):
     """
     res = trig.sine(x, PRECISION)
     assert abs(res - value) <= D(10) ** -(PRECISION - 1), (x, (res, value))
+
+
+@pytest.mark.parametrize(
+    "x, value", [
+        (-2 * PI, D(1)),
+        (-11 * PI / 6, D(3).sqrt() / 2), (-7 * PI / 4, D(2).sqrt() / 2), (-5 * PI / 3, 1 / D(2)),
+        (-3 * PI / 2, D(0)),
+        (-4 * PI / 3, -1 / D(2)), (-5 * PI / 4, -D(2).sqrt() / 2), (-7 * PI / 6, -D(3).sqrt() / 2),
+        (-PI, -D(1)),
+        (-5 * PI / 6, -D(3).sqrt() / 2), (-3 * PI / 4, -D(2).sqrt() / 2), (-2 * PI / 3, -1 / D(2)),
+        (-PI / 2, D(0)),
+        (-PI / 3, 1 / D(2)), (-PI / 4, D(2).sqrt() / 2), (-PI / 6, D(3).sqrt() / D(2)),
+        (D(0), D(1)),
+        (PI / 6, D(3).sqrt() / 2), (PI / 4, D(2).sqrt() / 2), (PI / 3, 1 / D(2)),
+        (PI / 2, D(0)),
+        (2 * PI / 3, -1 / D(2)), (3 * PI / 4, -D(2).sqrt() / 2), (5 * PI / 6, -D(3).sqrt() / 2),
+        (PI, -D(1)),
+        (7 * PI / 6, -D(3).sqrt() / 2), (5 * PI / 4, -D(2).sqrt() / 2), (4 * PI / 3, -1 / D(2)),
+        (3 * PI / 2, D(0)),
+        (5 * PI / 3, 1 / D(2)), (7 * PI / 4, D(2).sqrt() / 2), (11 * PI / 6, D(3).sqrt() / D(2)),
+        (2 * PI, D(1))
+    ]
+)
+def test_cosine(x: D, value: D):
+    """
+
+    :param x:
+    :param value:
+    :return:
+    """
+    res = trig.cosine(x, PRECISION)
+    assert abs(res - value) <= D(10) ** -(PRECISION - 1), (x, (res, value))
+
