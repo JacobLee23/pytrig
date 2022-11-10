@@ -150,7 +150,7 @@ class UnitCircle:
         lambda x: (x - PI / 6) % (2 * PI),          # x = k(2π) + π/6
         lambda x: (x - PI / 4) % (2 * PI),          # x = k(2π) + π/4
         lambda x: (x - PI / 3) % (2 * PI),          # x = k(2π) + π/3
-        lambda x: (x - PI / 2) % 2,                 # x = k(2π) + π/2
+        lambda x: (x - PI / 2) % (2 * PI),          # x = k(2π) + π/2
         lambda x: (x - 2 * PI / 3) % (2 * PI),      # x = k(2π) + 2π/3
         lambda x: (x - 3 * PI / 4) % (2 * PI),      # x = k(2π) + 3π/4
         lambda x: (x - 5 * PI / 6) % (2 * PI),      # x = k(2π) + 5π/6
