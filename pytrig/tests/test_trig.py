@@ -134,3 +134,30 @@ def test_secant(x: D, value: D):
         assert res is value
     else:
         assert abs(res - value) <= D(100) ** -(PRECISION - 1), (x, (res, value))
+
+
+@pytest.mark.parametrize(
+    "x, value", [
+        (-2 * PI, NAN),
+        (-3 * PI / 2, 1),
+        (-PI, NAN),
+        (-PI / 2, -1),
+        (0, NAN),
+        (PI / 2, 1),
+        (PI, NAN),
+        (3 * PI / 2, -1),
+        (2 * PI, NAN)
+    ]
+)
+def test_secant(x: D, value: D):
+    """
+
+    :param x:
+    :param value:
+    :return:
+    """
+    res = trig.cosecant(x, PRECISION)
+    if value is NAN:
+        assert res is value
+    else:
+        assert abs(res - value) <= D(100) ** -(PRECISION - 1), (x, (res, value))
