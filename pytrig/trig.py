@@ -20,8 +20,10 @@ from .maclaurin_series import hyperbolic_arctangent as _hyperbolic_arctangent
 D = decimal.Decimal
 
 PI = pi.chudnovsky_algorithm()
+
 INF = D("Infinity")
 NINF = D("-Infinity")
+NAN = D("NaN")
 
 
 def _precision(func: typing.Callable[[D, int], D]) -> typing.Callable:
@@ -43,7 +45,7 @@ def _precision(func: typing.Callable[[D, int], D]) -> typing.Callable:
             ctx.prec = precision + 4
 
             res = func(x, ctx.prec)
-            if res in (INF, NINF):
+            if res is NAN:
                 return res
             return D(res).quantize(D(10) ** -precision).normalize()
 
@@ -281,26 +283,31 @@ def tangent(x: D, prec: int) -> D:
     :return:
     """
     ucircle_values = [
-        0, INF, 0, NINF
+        0, NAN, 0, NAN
     ]
     try:
         res = UnitCircle.check_angle(x, ucircle_values, prec, only_axes=True)
         return sine(x, prec) / cosine(x, prec) if res is None else res
     except ZeroDivisionError:
-        return INF if sine(x, prec) > 0 else NINF
+        return NAN
 
 
 @_precision
-def secant(x: D) -> D:
+def secant(x: D, prec: int) -> D:
     r"""
 
     :param x:
+    :param prec:
     :return:
     """
+    ucircle_values = [
+        1, NAN, 1, NAN
+    ]
     try:
-        return 1 / cosine(x)
+        res = UnitCircle.check_angle(x, ucircle_values, prec, only_axes=True)
+        return 1 / cosine(x) if res is None else res
     except ZeroDivisionError:
-        return INF if sine(x) > 0 else NINF
+        return NAN
 
 
 @_precision
@@ -313,7 +320,7 @@ def cosecant(x: D) -> D:
     try:
         return 1 / sine(x)
     except ZeroDivisionError:
-        return INF if cosine(x) > 0 else NINF
+        return NAN
 
 
 @_precision
@@ -326,7 +333,7 @@ def cotangent(x: D) -> D:
     try:
         return cosine(x) / sine(x)
     except ZeroDivisionError:
-        return INF if cosine(x) > 0 else NINF
+        return NAN
 
 
 # Shorthands for trigonometric functions
@@ -407,7 +414,7 @@ def arcsecant(x: D) -> D:
         )
 
     if x is NINF:
-        return -PI / 2
+        return PI / 2
     elif x is INF:
         return PI / 2
     else:
@@ -427,7 +434,7 @@ def arccosecant(x: D) -> D:
         )
 
     if x is NINF:
-        return PI
+        return D(0)
     elif x is INF:
         return D(0)
     else:
@@ -506,7 +513,7 @@ def hyperbolic_cosecant(x: D) -> D:
     try:
         return 1 / hyperbolic_sine(x)
     except ZeroDivisionError:
-        return INF if hyperbolic_sine(x) > 0 else NINF
+        return NAN
 
 
 @_precision
@@ -519,7 +526,7 @@ def hyperbolic_cotangent(x: D) -> D:
     try:
         return hyperbolic_cosine(x) / hyperbolic_sine(x)
     except ZeroDivisionError:
-        return INF if hyperbolic_sine(x) > 0 else NINF
+        return NAN
 
 
 sinh, cosh, tanh = hyperbolic_sine, hyperbolic_cosine, hyperbolic_tangent
