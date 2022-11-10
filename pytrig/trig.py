@@ -301,7 +301,7 @@ def secant(x: D, prec: int) -> D:
     :return:
     """
     ucircle_values = [
-        1, NAN, 1, NAN
+        1, NAN, -1, NAN
     ]
     try:
         res = UnitCircle.check_angle(x, ucircle_values, prec, only_axes=True)
