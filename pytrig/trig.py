@@ -329,14 +329,19 @@ def cosecant(x: D, prec: int) -> D:
 
 
 @_precision
-def cotangent(x: D) -> D:
+def cotangent(x: D, prec: int) -> D:
     r"""
 
     :param x:
+    :param prec:
     :return:
     """
+    ucircle_values = [
+        NAN, 0, NAN, 0
+    ]
     try:
-        return cosine(x) / sine(x)
+        res = UnitCircle.check_angle(x, ucircle_values, prec, only_axes=True)
+        return cosine(x) / sine(x) if res is None else res
     except ZeroDivisionError:
         return NAN
 
