@@ -311,14 +311,19 @@ def secant(x: D, prec: int) -> D:
 
 
 @_precision
-def cosecant(x: D) -> D:
+def cosecant(x: D, prec: int) -> D:
     r"""
 
     :param x:
+    :param prec:
     :return:
     """
+    ucircle_values = [
+        NAN, 1, NAN, -1
+    ]
     try:
-        return 1 / sine(x)
+        res = UnitCircle.check_angle(x, ucircle_values, prec, only_axes=True)
+        return 1 / sine(x) if res is None else res
     except ZeroDivisionError:
         return NAN
 
