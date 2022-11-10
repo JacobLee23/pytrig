@@ -42,7 +42,10 @@ def _precision(func: typing.Callable[[D, int], D]) -> typing.Callable:
         with decimal.localcontext() as ctx:
             ctx.prec = precision + 4
 
-            return func(x, ctx.prec).quantize(D(10) ** -precision).normalize()
+            res = func(x, ctx.prec)
+            if res in (INF, NINF):
+                return res
+            return D(res).quantize(D(10) ** -precision).normalize()
 
     return wrapper
 
@@ -62,7 +65,7 @@ class UnitCircle:
 
             Angles are measured in radians.
 
-    .. py:attribute:: checks
+    .. py:attribute:: _checks
 
         A list of functions that determines whether a given angle is a multiple of one of the 12
         special unit circle angles.
@@ -119,18 +122,30 @@ class UnitCircle:
 
     .. code-block:: python
 
-        for theta, func in zip(UnitCircle.ucircle_angles, UnitCircle.checks):
+        for theta, func in zip(UnitCircle.ucircle_angles, UnitCircle._checks):
             assert func(theta) == 0
 
     .. _Unit Circle: https://en.wikipedia.org/wiki/Unit_circle
     """
-    ucircle_angles: typing.List[D] = [
-        0, PI / 6, PI / 4, PI / 3,
-        PI / 2, 2 * PI / 3, 3 * PI / 4, 5 * PI / 6,
-        PI, 7 * PI / 6, 5 * PI / 4, 4 * PI / 3,
-        3 * PI / 2, 5 * PI / 3, 7 * PI / 4, 11 * PI / 6
+    _ucircle_angles: typing.List[typing.Callable[[], D]] = [
+        lambda: 0,              # θ = 0
+        lambda: PI / 6,         # θ = π/6
+        lambda: PI / 4,         # θ = π/4
+        lambda: PI / 3,         # θ = π/3
+        lambda: PI / 2,         # θ = π/2
+        lambda: 2 * PI / 3,     # θ = 2π/3
+        lambda: 3 * PI / 4,     # θ = 3π/4
+        lambda: 5 * PI / 6,     # θ = 5π/6
+        lambda: PI,             # θ = π
+        lambda: 7 * PI / 6,     # θ = 7π/6
+        lambda: 5 * PI / 4,     # θ = 5π/4
+        lambda: 4 * PI / 3,     # θ = 4π/3
+        lambda: 3 * PI / 2,     # θ = 3π/2
+        lambda: 5 * PI / 3,     # θ = 5π/3
+        lambda: 7 * PI / 4,     # θ = 7π/4
+        lambda: 11 * PI / 6     # θ = 11π/6
     ]
-    checks: typing.List[typing.Callable[[D], D]] = [
+    _checks: typing.List[typing.Callable[[D], D]] = [
         lambda x: x % (2 * PI),                     # x = k(2π)
         lambda x: (x - PI / 6) % (2 * PI),          # x = k(2π) + π/6
         lambda x: (x - PI / 4) % (2 * PI),          # x = k(2π) + π/4
@@ -150,7 +165,24 @@ class UnitCircle:
     ]
 
     @classmethod
-    def check_angle(cls, x: D, values: typing.List[D], prec: int) -> typing.Optional[D]:
+    def ucircle_angles(cls, prec: int, *, only_axes: bool = False) -> typing.List[D]:
+        r"""
+
+        :param prec:
+        :param only_axes:
+        :return:
+        """
+        with decimal.localcontext() as ctx:
+            ctx.prec = prec
+
+            angles = [x() for x in cls._ucircle_angles]
+            return angles[::4] if only_axes else angles
+
+    @classmethod
+    def check_angle(
+            cls, x: D, values: typing.List[D], prec: int,
+            *, only_axes: bool = False
+    ) -> typing.Optional[D]:
         r"""
         Checks whether the angle ``x`` is a multiple of one of the 12 special unit circle angles.
 
@@ -171,19 +203,24 @@ class UnitCircle:
         :param x: The angle to check (in radians)
         :param values: The values of the function at the corresponding special unit circle angles
         :param prec:
+        :param only_axes:
         :return:
         """
-        if len(values) > len(cls.checks):
+        angles = cls.ucircle_angles(prec, only_axes=only_axes)
+
+        checks = cls._checks[::4] if only_axes else cls._checks
+
+        if len(values) > len(angles):
             raise ValueError(
-                f"Argument 'values' contains {len(values) - len(cls.checks)} too many values"
+                f"Argument 'values' contains {len(values) - len(angles)} too many values"
             )
-        elif len(values) < len(cls.checks):
+        elif len(values) < len(angles):
             raise ValueError(
-                f"Argument 'values' contains {len(cls.checks) - len(values)} too few values"
+                f"Argument 'values' contains {len(angles) - len(values)} too few values"
             )
 
-        for func, val in zip(cls.checks, values):
-            if abs(func(x).quantize(D(10) ** -(prec - 1))) < 9 * D(10) ** -(prec - 1):
+        for func, val in zip(checks, values):
+            if abs(func(x).quantize(D(10) ** -(prec - 1))) < D(10) ** -(prec - 2):
                 return val
 
 
@@ -196,18 +233,18 @@ def sine(x: D, prec: int) -> D:
     :return:
     """
     # Unit circle values for x ∈ [0, 2π)
-    ucvalues = [
-        D(0),                                               # +x
+    ucircle_values = [
+        0,                                                  # +x
         1 / D(2), D(2).sqrt() / 2, D(3).sqrt() / 2,         # QI
-        D(1),                                               # +y
+        1,                                                  # +y
         D(3).sqrt() / 2, D(2).sqrt() / 2, 1 / D(2),         # QII
-        D(0),                                               # -x
+        0,                                                  # -x
         -1 / D(2), -D(2).sqrt() / 2, -D(3).sqrt() / 2,      # QIII
-        -D(1),                                              # -y
+        -1,                                                 # -y
         -D(3).sqrt() / 2, -D(2).sqrt() / 2, -1 / D(2),      # QIV
     ]
 
-    res = UnitCircle.check_angle(x, ucvalues, prec)
+    res = UnitCircle.check_angle(x, ucircle_values, prec)
     return sum(_sine(x)) if res is None else res
 
 
@@ -220,32 +257,37 @@ def cosine(x: D, prec: int) -> D:
     :return:
     """
     # Unit circle values for x ∈ [0, 2π)
-    ucvalues = [
-        D(1),                                               # +x
+    ucircle_values = [
+        1,                                                  # +x
         D(3).sqrt() / 2, D(2).sqrt() / 2, 1 / D(2),         # QI
-        D(0),                                               # +y
+        0,                                                  # +y
         -1 / D(2), -D(2).sqrt() / 2, -D(3).sqrt() / 2,      # QII
-        -D(1),                                              # -x
+        -1,                                                 # -x
         -D(3).sqrt() / 2, -D(2).sqrt() / 2, -1 / D(2),      # QIII
-        D(0),                                               # -y
+        0,                                                  # -y
         1 / D(2), D(2).sqrt() / 2, D(3).sqrt() / 2,         # QIV
     ]
 
-    res = UnitCircle.check_angle(x, ucvalues, prec)
+    res = UnitCircle.check_angle(x, ucircle_values, prec)
     return sum(_cosine(x)) if res is None else res
 
 
 @_precision
-def tangent(x: D) -> D:
+def tangent(x: D, prec: int) -> D:
     r"""
 
     :param x:
+    :param prec:
     :return:
     """
+    ucircle_values = [
+        0, INF, 0, NINF
+    ]
     try:
-        return sine(x) / cosine(x)
+        res = UnitCircle.check_angle(x, ucircle_values, prec, only_axes=True)
+        return sine(x, prec) / cosine(x, prec) if res is None else res
     except ZeroDivisionError:
-        return INF if sine(x) > 0 else NINF
+        return INF if sine(x, prec) > 0 else NINF
 
 
 @_precision
