@@ -7,7 +7,8 @@ import decimal
 import pytest
 
 from pytrig import trig
-from pytrig.trig import PI, INF, NINF
+from pytrig.trig import PI
+from pytrig.trig import INF, NINF, NAN
 from pytrig.trig import PRECISION
 
 
@@ -84,13 +85,13 @@ def test_cosine(x: D, value: D):
 @pytest.mark.parametrize(
     "x, value", [
         (-2 * PI, 0),
-        (-3 * PI / 2, INF),
+        (-3 * PI / 2, NAN),
         (-PI, 0),
-        (-PI / 2, NINF),
+        (-PI / 2, NAN),
         (0, 0),
-        (PI / 2, INF),
+        (PI / 2, NAN),
         (PI, 0),
-        (3 * PI / 2, NINF),
+        (3 * PI / 2, NAN),
         (2 * PI, 0),
     ]
 )
@@ -102,7 +103,34 @@ def test_tangent(x: D, value: D):
     :return:
     """
     res = trig.tangent(x, PRECISION)
-    if value is INF or value is NINF:
+    if value is NAN:
         assert res is value
     else:
         assert abs(res - value) <= D(10) ** -(PRECISION - 1), (x, (res, value))
+
+
+@pytest.mark.parametrize(
+    "x, value", [
+        (-2 * PI, 1),
+        (-3 * PI / 2, NAN),
+        (-PI, -1),
+        (-PI / 2, NAN),
+        (0, 1),
+        (PI / 2, NAN),
+        (PI, -1),
+        (3 * PI / 2, NAN),
+        (2 * PI, 1)
+    ]
+)
+def test_secant(x: D, value: D):
+    """
+
+    :param x:
+    :param value:
+    :return:
+    """
+    res = trig.secant(x, PRECISION)
+    if value is NAN:
+        assert res is value
+    else:
+        assert abs(res - value) <= D(100) ** -(PRECISION - 1), (x, (res, value))
