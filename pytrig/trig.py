@@ -147,51 +147,23 @@ class UnitCircle:
         lambda: 7 * PI / 4,     # θ = 7π/4
         lambda: 11 * PI / 6     # θ = 11π/6
     ]
-    _checks: typing.List[typing.Callable[[D], D]] = [
-        lambda x: x % (2 * PI),                     # x = k(2π)
-        lambda x: (x - PI / 6) % (2 * PI),          # x = k(2π) + π/6
-        lambda x: (x - PI / 4) % (2 * PI),          # x = k(2π) + π/4
-        lambda x: (x - PI / 3) % (2 * PI),          # x = k(2π) + π/3
-        lambda x: (x - PI / 2) % (2 * PI),          # x = k(2π) + π/2
-        lambda x: (x - 2 * PI / 3) % (2 * PI),      # x = k(2π) + 2π/3
-        lambda x: (x - 3 * PI / 4) % (2 * PI),      # x = k(2π) + 3π/4
-        lambda x: (x - 5 * PI / 6) % (2 * PI),      # x = k(2π) + 5π/6
-        lambda x: (x - PI) % (2 * PI),              # x = k(2π) + π
-        lambda x: (x - 7 * PI / 6) % (2 * PI),      # x = k(2π) + 7π/6
-        lambda x: (x - 5 * PI / 4) % (2 * PI),      # x = k(2π) + 5π/4
-        lambda x: (x - 4 * PI / 3) % (2 * PI),      # x = k(2π) + 4π/3
-        lambda x: (x - 3 * PI / 2) % (2 * PI),      # x = k(2π) + 3π/2
-        lambda x: (x - 5 * PI / 3) % (2 * PI),      # x = k(2π) + 5π/3
-        lambda x: (x - 7 * PI / 4) % (2 * PI),      # x = k(2π) + 7π/4
-        lambda x: (x - 11 * PI / 6) % (2 * PI),     # x = k(2π) + 11π/6
-    ]
 
     @classmethod
     def angles(cls, prec: int, *, only_axes: bool = False) -> typing.List[D]:
         r"""
+        .. note::
 
-        :param prec:
-        :param only_axes:
-        :return:
+            Angles are measured in radians.
+
+        :param prec: The desired number of decimal places of precision
+        :param only_axes: If ``True``, only the axis angles are included in the returned list
+        :return: The special unit circle angles
         """
         with decimal.localcontext() as ctx:
             ctx.prec = prec
 
             angles = [x() for x in cls._ucircle_angles]
             return angles[::4] if only_axes else angles
-
-    @classmethod
-    def checks(cls, prec: int, *, only_axes: bool = False) -> typing.List[typing.Callable]:
-        r"""
-
-        :param prec:
-        :param only_axes:
-        :return:
-        """
-        with decimal.localcontext() as ctx:
-            ctx.prec = prec
-
-            return cls._checks[::4] if only_axes else cls._checks
 
     @classmethod
     def check_angle(
@@ -221,7 +193,6 @@ class UnitCircle:
         :return:
         """
         angles = cls.angles(prec, only_axes=only_axes)
-        checks = cls.checks(prec, only_axes=only_axes)
 
         if len(values) > len(angles):
             raise ValueError(
@@ -232,8 +203,9 @@ class UnitCircle:
                 f"Argument 'values' contains {len(angles) - len(values)} too few values"
             )
 
-        for func, val in zip(checks, values):
-            if abs(func(x).quantize(D(10) ** -(prec - 1))) < D(10) ** -(prec - 2):
+        for angle, val in zip(angles, values):
+            remainder = (x - angle) % (2 * PI)
+            if abs(remainder.quantize(D(10) ** -(prec - 1))) < D(10) ** -(prec - 2):
                 return val
 
 
