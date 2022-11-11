@@ -167,23 +167,31 @@ class UnitCircle:
     ]
 
     @classmethod
-    def ucircle_angles(cls, prec: int, *, only_axes: bool = False) -> typing.List[D]:
+    def ucircle_indices(
+            cls, quadrants: typing.Tuple[int] = (1, 2, 3, 4), include_axes: bool = True,
+    ) -> typing.List[int]:
         r"""
 
-        :param prec:
-        :param only_axes:
+        :param quadrants:
+        :param include_axes:
         :return:
         """
-        with decimal.localcontext() as ctx:
-            ctx.prec = prec
+        indices = []
 
-            angles = [x() for x in cls._ucircle_angles]
-            return angles[::4] if only_axes else angles
+        if 0 not in quadrants:
+            for quad in range(1, 5):
+                if quad in quadrants:
+                    indices.extend(range(4 * (quad - 1) + 1, 4 * quad))
+
+        if include_axes:
+            indices.extend(range(0, 16, 4))
+
+        return sorted(indices)
 
     @classmethod
     def check_angle(
             cls, x: D, values: typing.List[D], prec: int,
-            *, only_axes: bool = False
+            *, quadrants: typing.Tuple[int] = (1, 2, 3, 4), include_axes: bool = True
     ) -> typing.Optional[D]:
         r"""
         Checks whether the angle ``x`` is a multiple of one of the 12 special unit circle angles.
@@ -205,12 +213,13 @@ class UnitCircle:
         :param x: The angle to check (in radians)
         :param values: The values of the function at the corresponding special unit circle angles
         :param prec:
-        :param only_axes:
+        :param quadrants:
+        :param include_axes::
         :return:
         """
-        angles = cls.ucircle_angles(prec, only_axes=only_axes)
-
-        checks = cls._checks[::4] if only_axes else cls._checks
+        indices = cls.ucircle_indices(quadrants, include_axes)
+        angles = [x() for i, x in enumerate(cls._ucircle_angles) if i in indices]
+        checks = [c for i, c in enumerate(cls._checks) if i in indices]
 
         if len(values) > len(angles):
             raise ValueError(
@@ -286,7 +295,7 @@ def tangent(x: D, prec: int) -> D:
         0, NAN, 0, NAN
     ]
     try:
-        res = UnitCircle.check_angle(x, ucircle_values, prec, only_axes=True)
+        res = UnitCircle.check_angle(x, ucircle_values, prec, quadrants=(0,))
         return sine(x, prec) / cosine(x, prec) if res is None else res
     except ZeroDivisionError:
         return NAN
@@ -304,7 +313,7 @@ def secant(x: D, prec: int) -> D:
         1, NAN, -1, NAN
     ]
     try:
-        res = UnitCircle.check_angle(x, ucircle_values, prec, only_axes=True)
+        res = UnitCircle.check_angle(x, ucircle_values, prec, quadrants=(0,))
         return 1 / cosine(x) if res is None else res
     except ZeroDivisionError:
         return NAN
@@ -322,7 +331,7 @@ def cosecant(x: D, prec: int) -> D:
         NAN, 1, NAN, -1
     ]
     try:
-        res = UnitCircle.check_angle(x, ucircle_values, prec, only_axes=True)
+        res = UnitCircle.check_angle(x, ucircle_values, prec, quadrants=(0,))
         return 1 / sine(x) if res is None else res
     except ZeroDivisionError:
         return NAN
@@ -340,7 +349,7 @@ def cotangent(x: D, prec: int) -> D:
         NAN, 0, NAN, 0
     ]
     try:
-        res = UnitCircle.check_angle(x, ucircle_values, prec, only_axes=True)
+        res = UnitCircle.check_angle(x, ucircle_values, prec, quadrants=(0,))
         return cosine(x) / sine(x) if res is None else res
     except ZeroDivisionError:
         return NAN
