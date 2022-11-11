@@ -59,7 +59,7 @@ class UnitCircle:
     r"""
     `Unit Circle`_
 
-    .. py:attribute:: ucircle_angles
+    .. py:attribute:: angles
 
         A list of the 12 special unit circle angles.
 
@@ -116,7 +116,7 @@ class UnitCircle:
 
             lambda x: (x - t) % (2 * PI)
 
-        where :math:`t` is an element of :py:attr:`UnitCircle.ucircle_angles`.
+        where :math:`t` is an element of :py:attr:`UnitCircle.angles`.
         If the function call evalutes to :math:`0`, then it can be reasonably concluded that ``x``
         is a multiple of one of the 12 special unit circle angles.
 
@@ -124,7 +124,7 @@ class UnitCircle:
 
     .. code-block:: python
 
-        for theta, func in zip(UnitCircle.ucircle_angles, UnitCircle._checks):
+        for theta, func in zip(UnitCircle.angles, UnitCircle._checks):
             assert func(theta) == 0
 
     .. _Unit Circle: https://en.wikipedia.org/wiki/Unit_circle
@@ -167,7 +167,7 @@ class UnitCircle:
     ]
 
     @classmethod
-    def ucircle_angles(cls, prec: int, *, only_axes: bool = False) -> typing.List[D]:
+    def angles(cls, prec: int, *, only_axes: bool = False) -> typing.List[D]:
         r"""
 
         :param prec:
@@ -181,9 +181,21 @@ class UnitCircle:
             return angles[::4] if only_axes else angles
 
     @classmethod
+    def checks(cls, prec: int, *, only_axes: bool = False) -> typing.List[typing.Callable]:
+        r"""
+
+        :param prec:
+        :param only_axes:
+        :return:
+        """
+        with decimal.localcontext() as ctx:
+            ctx.prec = prec
+
+            return cls._checks[::4] if only_axes else cls._checks
+
+    @classmethod
     def check_angle(
-            cls, x: D, values: typing.List[D], prec: int,
-            *, only_axes: bool = False
+            cls, x: D, values: typing.List[D], prec: int, *, only_axes: bool = False
     ) -> typing.Optional[D]:
         r"""
         Checks whether the angle ``x`` is a multiple of one of the 12 special unit circle angles.
@@ -199,7 +211,7 @@ class UnitCircle:
 
         In other words, if :math:`T(\theta)` is the given trigonometric function,
         :math:`f(x)=\frac{\theta-t}{2\pi}` (where :math:`t` is in
-        :py:attr:`UnitCircle.ucircle_angles`), and :math:`|f(x)|<9*10^{-(n-1)}`, then
+        :py:attr:`UnitCircle.angles`), and :math:`|f(x)|<9*10^{-(n-1)}`, then
         :math:`x` is considered equal to :math:`k(2\pi)+t` and :math:`f(x)=f(k(2\pi)+t)`.
 
         :param x: The angle to check (in radians)
@@ -208,9 +220,8 @@ class UnitCircle:
         :param only_axes:
         :return:
         """
-        angles = cls.ucircle_angles(prec, only_axes=only_axes)
-
-        checks = cls._checks[::4] if only_axes else cls._checks
+        angles = cls.angles(prec, only_axes=only_axes)
+        checks = cls.checks(prec, only_axes=only_axes)
 
         if len(values) > len(angles):
             raise ValueError(
