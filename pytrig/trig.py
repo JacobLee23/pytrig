@@ -204,8 +204,9 @@ class UnitCircle:
             )
 
         for angle, val in zip(angles, values):
-            remainder = (x - angle) % (2 * PI)
-            if abs(remainder.quantize(D(10) ** -(prec - 1))) < D(10) ** -(prec - 2):
+            if abs(
+                    ((x - angle) % (2 * PI)).quantize(D(10) ** -(prec - 1))
+            ) < D(10) ** -(prec - 2):
                 return val
 
 
