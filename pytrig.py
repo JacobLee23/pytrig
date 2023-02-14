@@ -2,11 +2,15 @@
 """
 
 import decimal
-from math import factorial
+from math import comb, factorial
 import typing
 
 
 D = decimal.Decimal
+
+
+PRECISION = 100
+
 
 INF = D("Infinity")
 NAN = D("NaN")
@@ -17,7 +21,7 @@ def _precision(func: typing.Callable[[D, int], D]) -> typing.Callable[[D, int], 
     :param func:
     :return:
     """
-    def wrapper(x: D, prec: int = 100) -> D:
+    def wrapper(x: D, prec: int = PRECISION) -> D:
         """
         :param x:
         :param prec:
@@ -35,32 +39,63 @@ def _precision(func: typing.Callable[[D, int], D]) -> typing.Callable[[D, int], 
     return wrapper
 
 
-def chudnovsky_algorithm() -> D:
+def chudnovsky_algorithm(prec: int = PRECISION) -> D:
     r"""
+    :param prec:
     :return:
     """
-    # Initial conditions
-    sum_ = D(0)
-    k: int = 0
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 2
 
-    # Ramanujan-Sato series generalization
-    c = 426880 * D(10005).sqrt()
-    m = lambda n: D(factorial(6 * k)) / (D(factorial(3 * k)) * D(factorial(k)) ** 3)
-    l = lambda n: D(545140134 * n + 13591409)
-    x = lambda n: D(-262537412640768000) ** n
+        # Initial conditions
+        sum_ = D(0)
+        k: int = 0
 
-    while True:
-        term = m(k) * l(k) / x(k)
+        # Ramanujan-Sato series generalization
+        c = 426880 * D(10005).sqrt()
+        m = lambda n: D(factorial(6 * n)) / (D(factorial(3 * n)) * D(factorial(n)) ** 3)
+        l = lambda n: D(545140134 * n + 13591409)
+        x = lambda n: D(-262537412640768000) ** n
 
-        # Test for convergence
-        if sum_ + term == sum_:
-            return c * sum_ ** -1
+        while True:
+            term = m(k) * l(k) / x(k)
 
-        sum_ += term
-        k += 1
+            # Test for convergence
+            if sum_ + term == sum_:
+                return c * sum_ ** -1
+
+            sum_ += term
+            k += 1
 
 
 PI = chudnovsky_algorithm()
+
+
+# -------------------------------- Natural Logarithm Approximation --------------------------------
+
+
+def log_natural(x: D, prec: int = PRECISION) -> D:
+    """
+    :param x:
+    :param prec:
+    :return: The value of 'x' is outside the domain of ln(x)
+    """
+    if x <= 0:
+        raise ValueError("domain error")
+
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 2
+
+        res = None
+        a = D(1)
+        while True:
+            res_ = a * (x ** (1 / a)) - a
+
+            if res is not None and res == res_:
+                return res
+
+            res = res_
+            a *= 10
 
 
 # ---------------------------------- Maclaurin Series Expansions ----------------------------------
@@ -75,7 +110,7 @@ def ms_cosine(n: int, x: D) -> D:
 
 
 def ms_arcsine(n: int, x: D) -> D:
-    return D(factorial(2 * n)) / (D(4 ** n) * D(factorial(n)) ** 2 * D(2 * n + 1)) * (x ** (2 * n + 1))
+    return (1 / D(4)) ** n * comb(2 * n, n) * (x ** (2 * n + 1) / (2 * n + 1))
 
 
 def ms_arctangent(n: int, x: D) -> D:
@@ -91,7 +126,7 @@ def ms_hyperbolic_cosine(n: int, x: D) -> D:
 
 
 def ms_hyperbolic_arcsine(n: int, x: D) -> D:
-    return (D(-1) ** n * D(factorial(2 * n))) / (D(4) ** n * D(factorial(n)) ** 2 * (2 * n + 1)) * x ** (2 * n + 1)
+    return (D(-1) / D(4)) ** n * comb(2 * n, n) * (x ** (2 * n + 1) / (2 * n + 1))
 
 
 def ms_hyperbolic_tangent(n: int, x: D) -> D:
@@ -100,20 +135,20 @@ def ms_hyperbolic_tangent(n: int, x: D) -> D:
 
 class MaclaurinExpansion:
     """
-    :param func:
+    :param term:
     """
-    def __init__(self, func: typing.Callable[[int, D], D]):
-        self._func = func
+    def __init__(self, term: typing.Callable[[int, D], D]):
+        self._term = term
 
     def __call__(self, x: D) -> D:
         return sum(self.expand(x))
 
     @property
-    def func(self) -> typing.Callable[[int, D], D]:
+    def term(self) -> typing.Callable[[int, D], D]:
         """
         :return:
         """
-        return self._func
+        return self._term
 
     def expand(self, x: D) -> typing.Generator[D, None, None]:
         """
@@ -123,7 +158,7 @@ class MaclaurinExpansion:
         n = 0
         while True:
             try:
-                term = self.func(n, x)
+                term = self.term(n, x)
             except decimal.Overflow:
                 return
 
@@ -535,7 +570,7 @@ def hyperbolic_arcsine(x: D) -> D:
     :param x:
     :return:
     """
-    return _hyperbolic_arcsine(x)
+    return log_natural(x + D(x ** 2 + 1).sqrt()) if abs(x) >= 0.95 else _hyperbolic_arcsine(x)
 
 
 @_precision
