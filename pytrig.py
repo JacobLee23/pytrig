@@ -39,6 +39,9 @@ def _precision(func: typing.Callable[[D, int], D]) -> typing.Callable[[D, int], 
     return wrapper
 
 
+# --------------------------------------- Pi Approximations ---------------------------------------
+
+
 def chudnovsky_algorithm(prec: int = PRECISION) -> D:
     r"""
     :param prec:
@@ -71,66 +74,132 @@ def chudnovsky_algorithm(prec: int = PRECISION) -> D:
 PI = chudnovsky_algorithm()
 
 
-# -------------------------------- Natural Logarithm Approximation --------------------------------
-
-
-def log_natural(x: D, prec: int = PRECISION) -> D:
-    """
-    :param x:
-    :param prec:
-    :return: The value of 'x' is outside the domain of ln(x)
-    """
-    if x <= 0:
-        raise ValueError("domain error")
-
-    with decimal.localcontext() as ctx:
-        ctx.prec = prec + 2
-
-        res = None
-        a = D(1)
-        while True:
-            res_ = a * (x ** (1 / a)) - a
-
-            if res is not None and res == res_:
-                return res
-
-            res = res_
-            a *= 10
-
-
 # ---------------------------------- Maclaurin Series Expansions ----------------------------------
 
 
+def ms_natural_logarithm(n: int, x: D) -> D:
+    r"""
+    .. math::
+
+        \ln(1+x) = \sum_{n=1}^{\infty} \frac{{(-1)}^{n+1}}{n} x^n, -1 < x \leq 1
+
+    .. note::
+
+        The above formula can be rewritten as follows:
+
+        .. math::
+
+            \ln(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n+2}}{n+1} {(x-1)}^{n+1}, 0 < x \leq 2
+
+    :param n:
+    :param x:
+    :return:
+    """
+    return D(-1) ** (n + 2) / D(n + 1) * D((x - 1) ** (n + 1))
+
+
 def ms_sine(n: int, x: D) -> D:
-    return D(-1) ** n / D(factorial(2 * n + 1)) * (x ** (2 * n + 1))
+    r"""
+    .. math::
+
+        \sin(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n}}{(2n+1)!} {x}^{2n+1}
+
+    :param n:
+    :param x:
+    :return:
+    """
+    return D(-1) ** n / D(factorial(2 * n + 1)) * D(x ** (2 * n + 1))
 
 
 def ms_cosine(n: int, x: D) -> D:
-    return D(-1) ** n / D(factorial(2 * n)) * (x ** (2 * n))
+    r"""
+    .. math::
+
+        \cos(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n}}{(2n)!} {x}^{2n}
+
+    :param n:
+    :param x:
+    :return:
+    """
+    return D(-1) ** n / D(factorial(2 * n)) * D(x ** (2 * n))
 
 
 def ms_arcsine(n: int, x: D) -> D:
-    return (1 / D(4)) ** n * comb(2 * n, n) * (x ** (2 * n + 1) / (2 * n + 1))
+    r"""
+    .. math::
+
+        \arcsin(x) = \sum_{n=0}^{\infty} {(\frac{1}{4})}^{n} \binom{2n}{n} \frac{{x}^{2n+1}}{2n+1}
+
+    :param n:
+    :param x:
+    :return:
+    """
+    return (1 / D(4)) ** n * D(comb(2 * n, n)) * (D(x ** (2 * n + 1)) / D(2 * n + 1))
 
 
 def ms_arctangent(n: int, x: D) -> D:
-    return D(-1) ** n / D(2 * n + 1) * (x ** (2 * n + 1))
+    r"""
+    .. math::
+
+        \arctan(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n}}{2n+1} {x}^{2n+1}
+
+    :param n:
+    :param x:
+    :return:
+    """
+    return D(-1) ** n / D(2 * n + 1) * D(x ** (2 * n + 1))
 
 
 def ms_hyperbolic_sine(n: int, x: D) -> D:
-    return x ** D(2 * n + 1) / D(factorial(2 * n + 1))
+    r"""
+    .. math::
+
+        \sinh(x) = \sum_{n=0}^{\infty} \frac{{x}^{2n+1}}{(2n+1)!}
+
+    :param n:
+    :param x:
+    :return:
+    """
+    return D(x ** (2 * n + 1)) / D(factorial(2 * n + 1))
 
 
 def ms_hyperbolic_cosine(n: int, x: D) -> D:
-    return x ** (2 * n) / D(factorial(2 * n))
+    r"""
+    .. math::
+
+        \cosh(x) = \sum_{n=0}^{\infty} \frac{{x}^{2n}}{(2n)!}
+
+    :param n:
+    :param x:
+    :return:
+    """
+    return D(x ** (2 * n)) / D(factorial(2 * n))
 
 
 def ms_hyperbolic_arcsine(n: int, x: D) -> D:
-    return (D(-1) / D(4)) ** n * comb(2 * n, n) * (x ** (2 * n + 1) / (2 * n + 1))
+    r"""
+    .. math::
+
+        \operatorname{arsinh}(x) = \sum_{n=0}^{\infty} {(\frac{-1}{4})}^{n} \binom{2n}{n} \frac{{x}^{2n+1}}{2n+1}
+
+    :param n:
+    :param x:
+    :return:
+    """
+    return (D(-1) / D(4)) ** n * D(comb(2 * n, n)) * (D(x ** (2 * n + 1)) / D(2 * n + 1))
 
 
 def ms_hyperbolic_tangent(n: int, x: D) -> D:
-    return x ** (2 * n + 1) / (2 * n + 1)
+    r"""
+    .. math::
+
+        \operatorname{artanh}(x) = \sum_{n=0}^{\infty} \frac{x^{2n+1}}{2n+1}
+
+    :param n:
+    :param x:
+    :return:
+    """
+    return D(x ** (2 * n + 1)) / D(2 * n + 1)
 
 
 class MaclaurinExpansion:
@@ -170,6 +239,8 @@ class MaclaurinExpansion:
             n += 1
 
 
+_natural_logarithm = MaclaurinExpansion(ms_natural_logarithm)
+
 _sine = MaclaurinExpansion(ms_sine)
 _cosine = MaclaurinExpansion(ms_cosine)
 _arcsine = MaclaurinExpansion(ms_arcsine)
@@ -178,6 +249,25 @@ _hyperbolic_sine = MaclaurinExpansion(ms_hyperbolic_sine)
 _hyperbolic_cosine = MaclaurinExpansion(ms_hyperbolic_cosine)
 _hyperbolic_arcsine = MaclaurinExpansion(ms_hyperbolic_arcsine)
 _hyperbolic_arctangent = MaclaurinExpansion(ms_hyperbolic_tangent) 
+
+
+# -------------------------------- Natural Logarithm Approximation --------------------------------
+
+
+@_precision
+def natural_logarithm(x: D) -> D:
+    """
+    :param x:
+    :return:
+    :raise ValueError: The value of 'x' is outside the domain of ln(x)
+    """
+    if not x > 0:
+        raise ValueError("domain error")
+
+    return _natural_logarithm(x) if 0 < x < 1 else -natural_logarithm(1 / x)
+
+
+ln = natural_logarithm
 
 
 # ------------------------------------- Unit Circle Evaluation ------------------------------------
@@ -570,7 +660,7 @@ def hyperbolic_arcsine(x: D) -> D:
     :param x:
     :return:
     """
-    return log_natural(x + D(x ** 2 + 1).sqrt()) if abs(x) >= 0.95 else _hyperbolic_arcsine(x)
+    return ln(x + D(x ** 2 + 1).sqrt()) if abs(x) >= 0.95 else _hyperbolic_arcsine(x)
 
 
 @_precision
@@ -580,10 +670,10 @@ def hyperbolic_arccosine(x: D) -> D:
     :return:
     :raise ValueError: Value of 'x' is outside the domain of arcosh(x)
     """
-    if not abs(x) > 1:
+    if not abs(x) >= 1:
         raise ValueError("domain error")
 
-    return hyperbolic_arcsine(x ** 2 - 1)
+    return ln(x + D(x ** 2 - 1).sqrt()) if x ** 2 > 1.95 else hyperbolic_arcsine(x ** 2 - 1)
 
 
 @_precision
@@ -619,10 +709,10 @@ def hyperbolic_arccosecant(x: D) -> D:
     :return:
     :raise ValueError: Value of 'x' is outside the domain of arcsch(x)
     """
-    if not abs(x) > 1:
-        raise ValueError("domain error")
-
-    return hyperbolic_arcsine(1 / x)
+    try:
+        return hyperbolic_arcsine(1 / x)
+    except ZeroDivisionError:
+        return NAN
 
 
 @_precision
