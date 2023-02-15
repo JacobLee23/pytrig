@@ -1,4 +1,28 @@
-"""
+r"""
+.. py:data:: PRECISION
+
+    The default number of decimal places of precision to which :class:`decimal.Decimal` objects are
+    rounded.
+
+    :type: int
+    :value: 100
+
+.. py:data:: INF
+
+    :type: decimal.Decimal
+    :value: decimal.Decimal("Infinity")
+
+.. py:data:: NAN
+
+    :type: decimal.Decimal
+    :value: decimal.Decimal("NaN")
+
+.. py:data:: PI
+
+    An approximation of :math:`\pi` rounded to :py:data:`PRECISION` decimal places of precision,
+    calculated using the Chudnovsky algorithm.
+
+    :type: decimal.Decimal
 """
 
 import decimal
@@ -44,8 +68,8 @@ def _precision(func: typing.Callable[[D, int], D]) -> typing.Callable[[D, int], 
 
 def chudnovsky_algorithm(prec: int = PRECISION) -> D:
     r"""
-    :param prec:
-    :return:
+    Computes the Chudnovsky algorithm to approximate the value of :math:`\pi` to ``prec`` decimal
+    places of precision.
     """
     with decimal.localcontext() as ctx:
         ctx.prec = prec + 2
@@ -79,6 +103,8 @@ PI = chudnovsky_algorithm()
 
 def ms_natural_logarithm(n: int, x: D) -> D:
     r"""
+    Computes the :math:`n`th term of the Maclaurin series for :math:`\ln(x)`.
+
     .. math::
 
         \ln(1+x) = \sum_{n=1}^{\infty} \frac{{(-1)}^{n+1}}{n} x^n, -1 < x \leq 1
@@ -90,144 +116,130 @@ def ms_natural_logarithm(n: int, x: D) -> D:
         .. math::
 
             \ln(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n+2}}{n+1} {(x-1)}^{n+1}, 0 < x \leq 2
-
-    :param n:
-    :param x:
-    :return:
     """
     return D(-1) ** (n + 2) / D(n + 1) * D((x - 1) ** (n + 1))
 
 
 def ms_sine(n: int, x: D) -> D:
     r"""
+    Computes the :math:`n`th term of the Maclaurin series for :math:`\sin(x)`.
+
     .. math::
 
         \sin(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n}}{(2n+1)!} {x}^{2n+1}
-
-    :param n:
-    :param x:
-    :return:
     """
     return D(-1) ** n / D(factorial(2 * n + 1)) * D(x ** (2 * n + 1))
 
 
 def ms_cosine(n: int, x: D) -> D:
     r"""
+    Computes the :math:`n`th term of the Maclaurin series for :math:`\cos(x)`.
+
     .. math::
 
         \cos(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n}}{(2n)!} {x}^{2n}
-
-    :param n:
-    :param x:
-    :return:
     """
     return D(-1) ** n / D(factorial(2 * n)) * D(x ** (2 * n))
 
 
 def ms_arcsine(n: int, x: D) -> D:
     r"""
+    Computes the :math:`n`th term of the Maclaurin series for :math:`\arcsin(x)`.
+
     .. math::
 
         \arcsin(x) = \sum_{n=0}^{\infty} {(\frac{1}{4})}^{n} \binom{2n}{n} \frac{{x}^{2n+1}}{2n+1}
-
-    :param n:
-    :param x:
-    :return:
     """
     return (1 / D(4)) ** n * D(comb(2 * n, n)) * (D(x ** (2 * n + 1)) / D(2 * n + 1))
 
 
 def ms_arctangent(n: int, x: D) -> D:
     r"""
+    Computes the :math:`n`th term of the Maclaurin series for :math:`\arctan(x)`.
+
     .. math::
 
         \arctan(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n}}{2n+1} {x}^{2n+1}
-
-    :param n:
-    :param x:
-    :return:
     """
     return D(-1) ** n / D(2 * n + 1) * D(x ** (2 * n + 1))
 
 
 def ms_hyperbolic_sine(n: int, x: D) -> D:
     r"""
+    Computes the :math:`n`th term of the Maclaurin series for :math:`\sinh(x)`.
+
     .. math::
 
         \sinh(x) = \sum_{n=0}^{\infty} \frac{{x}^{2n+1}}{(2n+1)!}
-
-    :param n:
-    :param x:
-    :return:
     """
     return D(x ** (2 * n + 1)) / D(factorial(2 * n + 1))
 
 
 def ms_hyperbolic_cosine(n: int, x: D) -> D:
     r"""
+    Computes the :math:`n`th term of the Maclaurin series for :math:`\cosh(x)`.
+
     .. math::
 
         \cosh(x) = \sum_{n=0}^{\infty} \frac{{x}^{2n}}{(2n)!}
-
-    :param n:
-    :param x:
-    :return:
     """
     return D(x ** (2 * n)) / D(factorial(2 * n))
 
 
 def ms_hyperbolic_arcsine(n: int, x: D) -> D:
     r"""
+    Computes the :math:`n`th term of the Maclaurin series for :math:`\operatorname{arsinh}(x)`.
+
     .. math::
 
         \operatorname{arsinh}(x) = \sum_{n=0}^{\infty} {(\frac{-1}{4})}^{n} \binom{2n}{n} \frac{{x}^{2n+1}}{2n+1}
-
-    :param n:
-    :param x:
-    :return:
     """
     return (D(-1) / D(4)) ** n * D(comb(2 * n, n)) * (D(x ** (2 * n + 1)) / D(2 * n + 1))
 
 
 def ms_hyperbolic_tangent(n: int, x: D) -> D:
     r"""
+    Computes the :math:`n`th term of the Maclaurin series for :math:`\operatorname{artanh}(x)`.
+
     .. math::
 
         \operatorname{artanh}(x) = \sum_{n=0}^{\infty} \frac{x^{2n+1}}{2n+1}
-
-    :param n:
-    :param x:
-    :return:
     """
     return D(x ** (2 * n + 1)) / D(2 * n + 1)
 
 
 class MaclaurinExpansion:
     """
-    :param term:
+    :param func:
     """
-    def __init__(self, term: typing.Callable[[int, D], D]):
-        self._term = term
+    def __init__(self, func: typing.Callable[[int, D], D]):
+        self._func = func
 
     def __call__(self, x: D) -> D:
         return sum(self.expand(x))
 
     @property
-    def term(self) -> typing.Callable[[int, D], D]:
+    def func(self) -> typing.Callable[[int, D], D]:
         """
-        :return:
+        A callable object that takes parameters ``n`` and ``x`` and returns the value of the
+        :math:`n`th term of the Maclaurin series expansion of the represented mathematical function
+        evaluated at :math:`x`.
         """
-        return self._term
+        return self._func
 
     def expand(self, x: D) -> typing.Generator[D, None, None]:
         """
-        :param x:
-        :return:
+        Returns a generator of the values of the terms of the Maclaurin series expansion of a
+        function evaluated at ``x``. The generator stops when the next term of the series
+        approximately equals :math:`0` to the given number of decimal places of precision.
+
+        :param x: The :math:`x`-value at which the Maclaurin series is evaluated
+        :return: A generator of the values of the terms of the Maclaurin series expansion
         """
         n = 0
         while True:
             try:
-                term = self.term(n, x)
+                term = self.func(n, x)
             except decimal.Overflow:
                 return
 
@@ -256,9 +268,9 @@ _hyperbolic_arctangent = MaclaurinExpansion(ms_hyperbolic_tangent)
 
 @_precision
 def natural_logarithm(x: D) -> D:
-    """
-    :param x:
-    :return:
+    r"""
+    Evaluates :math:`\ln(x)`.
+
     :raise ValueError: The value of 'x' is outside the domain of ln(x)
     """
     if not x > 0:
@@ -275,8 +287,24 @@ ln = natural_logarithm
 
 class UnitCircle:
     r"""
-    :param ctx:
-    :param axis_values: The values of the trigonometric function at the +x, +y, -x, and -y axes
+    .. code-block:: python
+
+        >>> def func(x: D) -> D:
+        ...     ...
+        ...
+        >>> ucircle = UnitCircle(
+        ...     axis_values={
+        ...         "posx": f(0), "negx": f(PI), "posy": f(PI / 2), "negy": f(3 * PI / 2)
+        ...     },
+        ...     quadrant_values = {
+        ...         "q1": (f(PI / 6), f(PI / 4), f(PI / 3)),
+        ...         "q2": (f(2 * PI / 3), f(3 * PI / 4), f(5 * PI / 6)),
+        ...         "q3": (f(7 * PI / 6), f(5 * PI / 4), f(4 * PI / 3)),
+        ...         "q4": (f(5 * PI / 3), f(7 * PI / 4), f(11 * PI / 6)),
+        ...     }
+        ... )
+
+    :param axis_values: The values of the trigonometric function along the +x, +y, -x, and -y axes
     :param quadrant_values: The value of the trigonometric functions in QI, QII, QIII, and QIV
     """
     keys = ("posx", "negx", "posy", "negy", "q1", "q2", "q3", "q4")
@@ -326,7 +354,7 @@ class UnitCircle:
     @property
     def angles(self) -> typing.Tuple[D]:
         """
-        :return:
+        The 12 unit circle angles
         """
         return self._angles
 
@@ -367,8 +395,10 @@ class UnitCircle:
 
     def approximate_angle(self, x: D) -> typing.Optional[D]:
         """
+        Attempts to approximate the value of the trigonometric function at :math:`x` using the unit
+        circle angles. If :math:`x` is not 
+
         :param x:
-        :param prec:
         :return:
         """
         with decimal.localcontext() as ctx:
@@ -394,8 +424,7 @@ class UnitCircle:
 @_precision
 def sine(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\sin(x)`.
     """
     ucircle = UnitCircle(
         axis_values={"posx": 0, "negx": 0, "posy": 1, "negy": -1},
@@ -414,11 +443,10 @@ def sine(x: D) -> D:
 @_precision
 def cosine(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\cos(x)`.
     """
     ucircle = UnitCircle(
-        axis_values = {"posx": 1, "negx": -1, "posy": 0, "negy": 0},
+        axis_values={"posx": 1, "negx": -1, "posy": 0, "negy": 0},
         quadrant_values={
             "q1": (D(3).sqrt() / 2, D(2).sqrt() / 2, 1 / D(2)),
             "q2": (-1 / D(2), -D(2).sqrt() / 2, -D(3).sqrt() / 2),
@@ -434,8 +462,7 @@ def cosine(x: D) -> D:
 @_precision
 def tangent(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\tan(x)`.
     """
     ucircle = UnitCircle(axis_values={"posx": 0, "negx": 0, "posy": NAN, "negy": NAN})
 
@@ -449,8 +476,7 @@ def tangent(x: D) -> D:
 @_precision
 def secant(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\sec(x)`.
     """
     ucircle = UnitCircle(axis_values={"posx": 1, "negx": -1, "posy": NAN, "negy": NAN})
     
@@ -464,8 +490,7 @@ def secant(x: D) -> D:
 @_precision
 def cosecant(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\csc(x)`.
     """
     ucircle = UnitCircle(axis_values={"posx": NAN, "negx": NAN, "posy": 1, "negy": -1})
     
@@ -479,8 +504,7 @@ def cosecant(x: D) -> D:
 @_precision
 def cotangent(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\cot(x)`.
     """
     ucircle = UnitCircle(axis_values={"posx": NAN, "negx": NAN, "posy": 0, "negy": 0})
 
@@ -502,8 +526,8 @@ sec, csc, cot = secant, cosecant, cotangent
 @_precision
 def arcsine(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:\`arcsin(x)`.
+
     :raise ValueError: The value of 'x' is outside the domain of arcsin(x)
     """
     if not abs(x) <= 1:
@@ -516,8 +540,8 @@ def arcsine(x: D) -> D:
 @_precision
 def arccosine(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\arccos(x)`.
+
     :raise ValueError: The value of 'x' is outside the domain of arccos(x)
     """
     if not abs(x) <= 1:
@@ -530,8 +554,7 @@ def arccosine(x: D) -> D:
 @_precision
 def arctangent(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\arctan(x)`.
     """
     if abs(x) is INF:
         return PI / 2 if x is INF else -PI / 2
@@ -543,8 +566,8 @@ def arctangent(x: D) -> D:
 @_precision
 def arcsecant(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\arcsec(x)`.
+
     :raise ValueError: The value of 'x' is outside the domain of arcsec(x)
     """
     if not abs(x) >= 1:
@@ -557,8 +580,8 @@ def arcsecant(x: D) -> D:
 @_precision
 def arccosecant(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\arccsc(x)`.
+
     :raise ValueError: The value of 'x' is outside the domain of arccsc(x)
     """
     if not abs(x) >= 1:
@@ -571,8 +594,7 @@ def arccosecant(x: D) -> D:
 @_precision
 def arccotangent(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\arccot(x)`.
     """
     with decimal.localcontext():
         return (D(0) if x is INF else PI) if abs(x) is INF else arctangent(1 / x)
@@ -589,8 +611,7 @@ arcsec, arccsc, arccot = arcsecant, arccosecant, arccotangent
 @_precision
 def hyperbolic_sine(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\sinh(x)`.
     """
     return _hyperbolic_sine(x)
 
@@ -598,8 +619,7 @@ def hyperbolic_sine(x: D) -> D:
 @_precision
 def hyperbolic_cosine(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\cosh(x)`.
     """
     return _hyperbolic_cosine(x)
 
@@ -607,8 +627,7 @@ def hyperbolic_cosine(x: D) -> D:
 @_precision
 def hyperbolic_tangent(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\tanh(x)`.
     """
     return hyperbolic_sine(x) / hyperbolic_cosine(x)
 
@@ -616,8 +635,7 @@ def hyperbolic_tangent(x: D) -> D:
 @_precision
 def hyperbolic_secant(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\sech(x)`.
     """
     return 1 / hyperbolic_cosine(x)
 
@@ -625,8 +643,7 @@ def hyperbolic_secant(x: D) -> D:
 @_precision
 def hyperbolic_cosecant(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\csch(x)`.
     """
     try:
         return 1 / hyperbolic_sine(x)
@@ -637,8 +654,7 @@ def hyperbolic_cosecant(x: D) -> D:
 @_precision
 def hyperbolic_cotangent(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\coth(x)`.
     """
     try:
         return hyperbolic_cosine(x) / hyperbolic_sine(x)
@@ -657,8 +673,7 @@ sech, csch, coth = hyperbolic_secant, hyperbolic_cosecant, hyperbolic_cotangent
 @_precision
 def hyperbolic_arcsine(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\arsinh(x)`.
     """
     return ln(x + D(x ** 2 + 1).sqrt()) if abs(x) >= 0.95 else _hyperbolic_arcsine(x)
 
@@ -666,8 +681,8 @@ def hyperbolic_arcsine(x: D) -> D:
 @_precision
 def hyperbolic_arccosine(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\arcosh(x)`.
+    
     :raise ValueError: Value of 'x' is outside the domain of arcosh(x)
     """
     if not abs(x) >= 1:
@@ -679,8 +694,8 @@ def hyperbolic_arccosine(x: D) -> D:
 @_precision
 def hyperbolic_arctangent(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\artanh(x)`.
+    
     :raise ValueError: Value of 'x' is outside the domain of artanh(x)
     """
     if not abs(x) < 1:
@@ -692,8 +707,8 @@ def hyperbolic_arctangent(x: D) -> D:
 @_precision
 def hyperbolic_arcsecant(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\arsech(x)`.
+    
     :raise ValueError: Value of 'x' is outside the domain of arsech(x)
     """
     if not 0 < x <= 1:
@@ -705,8 +720,8 @@ def hyperbolic_arcsecant(x: D) -> D:
 @_precision
 def hyperbolic_arccosecant(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\arcsch(x)`.
+    
     :raise ValueError: Value of 'x' is outside the domain of arcsch(x)
     """
     try:
@@ -718,8 +733,8 @@ def hyperbolic_arccosecant(x: D) -> D:
 @_precision
 def hyperbolic_arccotangent(x: D) -> D:
     r"""
-    :param x:
-    :return:
+    Evaluates :math:`\arcoth(x)`.
+    
     :raise ValueError: Value of 'x' is outside the domain of artanh(x)
     """
     if not abs(x) > 1:
