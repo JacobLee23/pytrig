@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytrig"
-version = "0.1.0"
-description = ""
-readme = "README.md"
+version = "0.2.0"
 authors = [
     { name = "Jacob Lee", email = "Jacob.J.Lee@outlook.com" }
 ]
+description = ""
+readme = "README.md"
 license = { file = "LICENSE" }
 classifiers = [
     "Development Status :: 1 - Planning",
@@ -18,17 +18,17 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.8"
 
 [project.urls]
-homepage = "https://github.com/JacobLee23/pytrig"
+"Homepage" = "https://github.com/JacobLee23/pytrig"
+"Issue Tracker" = "https://github.com/Jacoblee23/pytrig/issues/"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["pytrig"]
-exclude = [
-    "pytrig.tests*",
-    "docs*"
-]
+[tools.setuptools]
+py-modules = ["pytrig"]
