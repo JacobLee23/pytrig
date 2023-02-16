@@ -7,7 +7,13 @@ API Reference
 
 -----
 
+Pi Approximations
+-----------------
+
 .. autofunction:: chudnovsky_algorithm
+
+Maclaurin Series Expansions
+---------------------------
 
 .. autofunction:: ms_natural_logarithm
 .. autofunction:: ms_sine
@@ -22,10 +28,19 @@ API Reference
 .. autoclass:: MaclaurinExpansion
     :members:
 
+Natural Logarithm Approximations
+--------------------------------
+
 .. autofunction:: natural_logarithm
+
+Unit Circle Evaluation
+----------------------
 
 .. autoclass:: UnitCircle
     :members:
+
+Trigonometric Functions
+-----------------------
 
 .. autofunction:: sine
 .. autofunction:: cosine
@@ -34,6 +49,9 @@ API Reference
 .. autofunction:: cosecant
 .. autofunction:: cotangent
 
+Inverse Trigonometric Functions
+-------------------------------
+
 .. autofunction:: arcsine
 .. autofunction:: arccosine
 .. autofunction:: arctangent
@@ -41,12 +59,18 @@ API Reference
 .. autofunction:: arccosecant
 .. autofunction:: arccotangent
 
+Hyperbolic Functions
+--------------------
+
 .. autofunction:: hyperbolic_sine
 .. autofunction:: hyperbolic_cosine
 .. autofunction:: hyperbolic_tangent
 .. autofunction:: hyperbolic_secant
 .. autofunction:: hyperbolic_cosecant
 .. autofunction:: hyperbolic_cotangent
+
+Inverse Hyperbolic Functions
+----------------------------
 
 .. autofunction:: hyperbolic_arcsine
 .. autofunction:: hyperbolic_arccosine
