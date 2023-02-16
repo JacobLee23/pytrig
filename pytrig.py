@@ -406,13 +406,13 @@ class UnitCircle:
 
             for axis, theta in self.axes.items():
                 error = ((x - theta) % (2 * PI)).quantize(D(10) ** -(ctx.prec - 1))
-                if abs(error - tolerance) < 1:
+                if abs(error) <= tolerance:
                     return self.axis_values[axis]
 
             for quadrant, angles in self.quadrants.items():
                 for i, theta in enumerate(angles):
                     error = ((x - theta) % (2 * PI)).quantize(D(10) ** -(ctx.prec - 1))
-                    if abs(error - tolerance) < 1:
+                    if abs(error) <= tolerance:
                         return self.quadrant_values[quadrant][i]
 
             return None
