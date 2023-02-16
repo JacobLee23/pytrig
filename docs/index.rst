@@ -1,20 +1,26 @@
-.. pytrig documentation master file, created by
-   sphinx-quickstart on Tue Nov  1 19:32:08 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Pytrig Documentation
+====================
 
-Welcome to pytrig's documentation!
-==================================
+**Pytrig**,  A pure-Python package for high-precision computation of trigonometric functions.
+
+-----
+
+Features
+--------
+
+User Guide
+----------
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
+   user/install
+   user/quickstart
 
+API Documentation
+-----------------
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 1
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   api
