@@ -197,7 +197,7 @@ def ms_hyperbolic_arcsine(n: int, x: D) -> D:
     return (D(-1) / D(4)) ** n * D(comb(2 * n, n)) * (D(x ** (2 * n + 1)) / D(2 * n + 1))
 
 
-def ms_hyperbolic_tangent(n: int, x: D) -> D:
+def ms_hyperbolic_arctangent(n: int, x: D) -> D:
     r"""
     Computes the :math:`n`th term of the Maclaurin series for :math:`\operatorname{artanh}(x)`.
 
@@ -260,7 +260,7 @@ _arctangent = MaclaurinExpansion(ms_arctangent)
 _hyperbolic_sine = MaclaurinExpansion(ms_hyperbolic_sine)
 _hyperbolic_cosine = MaclaurinExpansion(ms_hyperbolic_cosine)
 _hyperbolic_arcsine = MaclaurinExpansion(ms_hyperbolic_arcsine)
-_hyperbolic_arctangent = MaclaurinExpansion(ms_hyperbolic_tangent) 
+_hyperbolic_arctangent = MaclaurinExpansion(ms_hyperbolic_arctangent) 
 
 
 # -------------------------------- Natural Logarithm Approximation --------------------------------
