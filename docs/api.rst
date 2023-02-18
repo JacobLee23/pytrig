@@ -5,12 +5,60 @@ API Reference
 
 .. automodule:: pytrig
 
+.. py:data:: INF
+
+    A :class:`decimal.Decimal` representation of infinity.
+    Equivalent to ``decimal.Decimal("Infinity")``:
+
+    .. doctest::
+        :pyversion: >= 3.8
+
+        >>> import decimal
+        >>> import pytrig
+        >>> pytrig.INF == decimal.Decimal("Infinity")
+        True
+
+    :type: decimal.Decimal
+
+.. py:data:: NAN
+
+    A :class:`decimal.Decimal` representation for a nonexistent value.
+    Equivalent to ``decimal.Decimal("NaN")``:
+
+    .. doctest::
+        :pyversion: >= 3.8
+
+        >>> import decimal
+        >>> import pytrig
+        >>> pytrig.NAN == decimal.Decimal("NaN")
+        True
+
+    :type: decimal.Decimal
+
 -----
+
+Computation Precision
+---------------------
+
+.. py:data:: PRECISION
+
+    The default number of decimal places of precision used by computations.
+
+    :type: int
+    :value: 100
+
+.. autofunction:: precision
 
 Pi Approximations
 -----------------
 
 .. autofunction:: chudnovsky_algorithm
+
+.. py:data:: PI
+
+    An approximation of :math:`\pi` as computed by :py:func:`chudnovsky_algorithm`, to :py:data:`PRECISION` decimal places of precision.
+
+    :type: decimal.Decimal
 
 Maclaurin Series Expansions
 ---------------------------

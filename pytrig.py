@@ -1,26 +1,37 @@
 r"""
-.. py:data:: PRECISION
+**Pytrig** uses Maclaurin series expansions `[1]`_ `[2]`_ in conjunction with the
+standard-library module :mod:`decimal` (which supports "correctly rounded decimal floating point
+arithmetic") to rapidly approximate the trigonometric functions with high levels of precision. The
+**pytrig** module offers higher levels of precision than does the :mod:`math` module:
 
-    The default number of decimal places of precision to which :class:`decimal.Decimal` objects are
-    rounded.
+.. doctest::
+    :pyversion: >= 3.8
 
-    :type: int
-    :value: 100
+    >>> import math
+    >>> import pytrig
+    >>> math.pi
+    3.141592653589793
+    >>> pytrig.PI
+    Decimal('3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706801')
 
-.. py:data:: INF
+The **pytrig** module supports computation of the following functions and classes of functions:
 
-    :type: decimal.Decimal
+- Natural Logarithm `[3]`_ `[6]`_
+- Trigonometric functions `[4]`_ `[7]`_
+- Inverse trigonometric functions `[4]`_ `[8]`_
+- Hyperbolic functions `[5]`_ `[9]`_
+- Inverse hyperbolic functions `[5]`_ `[10]`_
 
-.. py:data:: NAN
-
-    :type: decimal.Decimal
-
-.. py:data:: PI
-
-    An approximation of :math:`\pi` rounded to :py:data:`PRECISION` decimal places of precision,
-    calculated using the Chudnovsky algorithm.
-
-    :type: decimal.Decimal
+.. _[1]: https://en.wikipedia.org/wiki/Taylor_series
+.. _[2]: https://mathworld.wolfram.com/MaclaurinSeries.html
+.. _[3]: https://en.wikipedia.org/wiki/Taylor_series#Natural_logarithm
+.. _[4]: https://en.wikipedia.org/wiki/Taylor_series#Trigonometric_functions
+.. _[5]: https://en.wikipedia.org/wiki/Taylor_series#Hyperbolic_functions
+.. _[6]: https://en.wikipedia.org/wiki/Natural_logarithm#Series
+.. _[7]: https://en.wikipedia.org/wiki/Trigonometric_functions#Power_series_expansion
+.. _[8]: https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Infinite_series
+.. _[9]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Taylor_series_expressions
+.. _[10]: https://en.wikipedia.org/wiki/Inverse_hyperbolic_functions#Series_expansions
 """
 
 import decimal
@@ -32,14 +43,18 @@ import typing
 D = decimal.Decimal
 
 
-PRECISION = 100
-
-
 INF = D("Infinity")
 NAN = D("NaN")
 
 
-def _precision(func: typing.Callable[[D, int], D]) -> typing.Callable[[D, int], D]:
+# ------------------------------------- Computation Precision -------------------------------------
+
+
+# Default number of decimal places of precision
+PRECISION = 100
+
+
+def precision(func: typing.Callable[[D], D]) -> typing.Callable[[D, int], D]:
     """
     :param func:
     :return:
@@ -68,8 +83,44 @@ def _precision(func: typing.Callable[[D, int], D]) -> typing.Callable[[D, int], 
 
 def chudnovsky_algorithm(prec: int = PRECISION) -> D:
     r"""
-    Computes the Chudnovsky algorithm to approximate the value of :math:`\pi` to ``prec`` decimal
-    places of precision.
+    The Chudnovsky algorithm:
+
+    .. math::
+
+        \frac{1}{\pi} = 12 \sum_{q=0}^{\infty} \frac{{(-1)}^{q}(6q)!(545140134q+13591409)}{(3q)!{(q!)}^{3}{(640320)}^{3q+\frac{3}{2}}}
+
+    `[11] <https://en.wikipedia.org/wiki/Chudnovsky_algorithm#Algorithm>`_.
+
+    The above formula can be simplified to:
+
+    .. math::
+
+        \frac{{(640320)}^{\frac{3}{2}}}{12 \pi} = \frac{426880 \sqrt{10005}}{\pi} = \sum_{q=0}^{\infty} \frac{(6q)!(545140134q+13591409)}{(3q)!{(q!)}^{3}{(-262537412640768000)}^{q}}
+
+    The result can then be generalized as the following:
+
+    .. math::
+
+        \pi = C{(\sum_{q=0}^{\infty} \frac{M_{q}L_{q}}{X_{q}})}^{-1}
+
+    where:
+
+    .. math::
+        
+        C = 426880 \sqrt{10005}
+
+        M_{q} = \frac{(6q)!}{(3q)!{(q!)}^{3}}
+
+        L_{q} = 545140134q + 13591409
+
+        X_{q} = {(-262537412640768000)}^{q}
+
+    This generalization is the method this function uses to compute approximations of :math:`\pi`.
+
+    The time complexity of this algorithm is :math:`O(n{(\log n)}^{3})`
+    `[12] <http://www.numberworld.org/y-cruncher/internals/formulas.html>`_.
+
+    :param prec: The number of decimal places of precision
     """
     with decimal.localcontext() as ctx:
         ctx.prec = prec + 2
@@ -103,11 +154,13 @@ PI = chudnovsky_algorithm()
 
 def ms_natural_logarithm(n: int, x: D) -> D:
     r"""
-    Computes the :math:`n`-th term of the Maclaurin series for :math:`\ln(x)`.
+    The Maclaurin series expansion for :math:`\ln(x)`:
 
     .. math::
 
         \ln(1+x) = \sum_{n=1}^{\infty} \frac{{(-1)}^{n+1}}{n} x^n, -1 < x \leq 1
+
+    `[2]`_ `[3]`_ `[6]`_.
 
     .. note::
 
@@ -116,94 +169,149 @@ def ms_natural_logarithm(n: int, x: D) -> D:
         .. math::
 
             \ln(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n+2}}{n+1} {(x-1)}^{n+1}, 0 < x \leq 2
+
+        This summation is 0-based and the series is evaluated at :math:`x` instead of :math:`1+x`.
+        For these reasons, this alternative form of the series is used by this function.
+
+    :param n: The 0-based index of the series term to compute
+    :param x: The value at which to evaluate the series term
+    :return: The ``n``-th term of the Maclaurin series for :math:`\ln(x)`, evaluated at ``x``
     """
     return D(-1) ** (n + 2) / D(n + 1) * D((x - 1) ** (n + 1))
 
 
 def ms_sine(n: int, x: D) -> D:
     r"""
-    Computes the :math:`n`-th term of the Maclaurin series for :math:`\sin(x)`.
+    The Maclaurin series expansion for :math:`\sin(x)`:
 
     .. math::
 
-        \sin(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n}}{(2n+1)!} {x}^{2n+1}
+        \sin(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n}}{(2n+1)!} {x}^{2n+1}, -\infty < x < \infty
+
+    `[2]`_ `[4]`_ `[7]`_.
+
+    :param n: The 0-based index of the series term to compute
+    :param x: The value at which to evaluate the series term
+    :return: The ``n``-th term of the Maclaurin series for :math:`\sin(x)`, evaluated at ``x``
     """
     return D(-1) ** n / D(factorial(2 * n + 1)) * D(x ** (2 * n + 1))
 
 
 def ms_cosine(n: int, x: D) -> D:
     r"""
-    Computes the :math:`n`-th term of the Maclaurin series for :math:`\cos(x)`.
+    The Maclaurin series expansion for :math:`\cos(x)`:
 
     .. math::
 
         \cos(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n}}{(2n)!} {x}^{2n}
+
+    `[2]`_ `[4]`_ `[7]`_.
+
+    :param n: The 0-based index of the series term to compute
+    :param x: The value at which to evaluate the series term
+    :return: The ``n``-th term of the Maclaurin series for :math:`\cos(x)`, evaluated at ``x``
     """
     return D(-1) ** n / D(factorial(2 * n)) * D(x ** (2 * n))
 
 
 def ms_arcsine(n: int, x: D) -> D:
     r"""
-    Computes the :math:`n`-th term of the Maclaurin series for :math:`\arcsin(x)`.
+    The Maclaurin series expansion for :math:`\arcsin(x)`:
 
     .. math::
 
         \arcsin(x) = \sum_{n=0}^{\infty} {(\frac{1}{4})}^{n} \binom{2n}{n} \frac{{x}^{2n+1}}{2n+1}
+
+    `[2]`_ `[4]`_ `[8]`_.
+
+    :param n: The 0-based index of the series term to compute
+    :param x: The value at which to evaluate the series term
+    :return: The ``n``-th term of the Maclaurin series for :math:`\arcsin(x)`, evaluated at ``x``
     """
     return (1 / D(4)) ** n * D(comb(2 * n, n)) * (D(x ** (2 * n + 1)) / D(2 * n + 1))
 
 
 def ms_arctangent(n: int, x: D) -> D:
     r"""
-    Computes the :math:`n`-th term of the Maclaurin series for :math:`\arctan(x)`.
+    The Maclaurin series expansion for :math:`\arctan(x)`:
 
     .. math::
 
         \arctan(x) = \sum_{n=0}^{\infty} \frac{{(-1)}^{n}}{2n+1} {x}^{2n+1}
+
+    `[2]`_ `[4]`_ `[8]`_.
+
+    :param n: The 0-based index of the series term to compute
+    :param x: The value at which to evaluate the series term
+    :return: The ``n``-th term of the Maclaurin series for :math:`\arctan(x)`, evaluated at ``x``
     """
     return D(-1) ** n / D(2 * n + 1) * D(x ** (2 * n + 1))
 
 
 def ms_hyperbolic_sine(n: int, x: D) -> D:
     r"""
-    Computes the :math:`n`-th term of the Maclaurin series for :math:`\sinh(x)`.
+    The Maclaurin series expansion for :math:`\sinh(x)`:
 
     .. math::
 
         \sinh(x) = \sum_{n=0}^{\infty} \frac{{x}^{2n+1}}{(2n+1)!}
+
+    `[2]`_ `[5]`_ `[9]`_.
+
+    :param n: The 0-based index of the series term to compute
+    :param x: The value at which to evaluate the series term
+    :return: The ``n``-th term of the Maclaurin series for :math:`\sinh(x)`, evaluated at ``x``
     """
     return D(x ** (2 * n + 1)) / D(factorial(2 * n + 1))
 
 
 def ms_hyperbolic_cosine(n: int, x: D) -> D:
     r"""
-    Computes the :math:`n`-th term of the Maclaurin series for :math:`\cosh(x)`.
+    The Maclaurin series expansion for :math:`\cosh(x)`:
 
     .. math::
 
         \cosh(x) = \sum_{n=0}^{\infty} \frac{{x}^{2n}}{(2n)!}
+
+    `[2]`_ `[5]`_ `[9]`_.
+
+    :param n: The 0-based index of the series term to compute
+    :param x: The value at which to evaluate the series term
+    :return: The ``n``-th term of the Maclaurin series for :math:`\cosh(x)`, evaluated at ``x``
     """
     return D(x ** (2 * n)) / D(factorial(2 * n))
 
 
 def ms_hyperbolic_arcsine(n: int, x: D) -> D:
     r"""
-    Computes the :math:`n`-th term of the Maclaurin series for :math:`\operatorname{arsinh}(x)`.
+    The Maclaurin series expansion for :math:`\arsinh(x)`:
 
     .. math::
 
         \operatorname{arsinh}(x) = \sum_{n=0}^{\infty} {(\frac{-1}{4})}^{n} \binom{2n}{n} \frac{{x}^{2n+1}}{2n+1}
+
+    `[2]`_ `[5]`_ `[10]`_.
+
+    :param n: The 0-based index of the series term to compute
+    :param x: The value at which to evaluate the series term
+    :return: The ``n``-th term of the Maclaurin series for :math:`\operatorname{arsinh}(x)`, evaluated at ``x``
     """
     return (D(-1) / D(4)) ** n * D(comb(2 * n, n)) * (D(x ** (2 * n + 1)) / D(2 * n + 1))
 
 
 def ms_hyperbolic_arctangent(n: int, x: D) -> D:
     r"""
-    Computes the :math:`n`-th term of the Maclaurin series for :math:`\operatorname{artanh}(x)`.
+    The Maclaurin series expansion for :math:`\operatorname{artanh}(x)`:
 
     .. math::
 
         \operatorname{artanh}(x) = \sum_{n=0}^{\infty} \frac{x^{2n+1}}{2n+1}
+
+    `[2]`_ `[5]`_ `[10]`_.
+
+    :param n: The 0-based index of the series term to compute
+    :param x: The value at which to evaluate the series term
+    :return: The ``n``-th term of the Maclaurin series for :math:`\operatorname{artanh}(x)`, evaluated at ``x``
     """
     return D(x ** (2 * n + 1)) / D(2 * n + 1)
 
@@ -266,11 +374,13 @@ _hyperbolic_arctangent = MaclaurinExpansion(ms_hyperbolic_arctangent)
 # -------------------------------- Natural Logarithm Approximation --------------------------------
 
 
-@_precision
+@precision
 def natural_logarithm(x: D) -> D:
     r"""
-    Evaluates :math:`\ln(x)`.
+    Evaluates :math:`\ln(x)` to ``n`` decimal places of precision.
 
+    :param x:
+    :param n:
     :raise ValueError: The value of 'x' is outside the domain of ln(x)
     """
     if not x > 0:
@@ -361,35 +471,30 @@ class UnitCircle:
     @property
     def axes(self) -> typing.Union[typing.Dict[str, D], None]:
         """
-        :return:
         """
         return self._axes
 
     @property
     def quadrants(self) -> typing.Union[typing.Dict[str, typing.Tuple[D]], None]:
         """
-        :return:
         """
         return self._quadrants
 
     @property
     def ucircle_angles(self) -> typing.Dict[str, typing.Union[D, typing.Tuple[D]]]:
         """
-        :return:
         """
         return self._ucircle_angles
 
     @property
     def axis_values(self) -> typing.Dict[str, D]:
         """
-        :return:
         """
         return self._axis_values
 
     @property
     def quadrant_values(self) -> typing.Dict[str, typing.Tuple[D]]:
         """
-        :return:
         """
         return self._quadrant_values
 
@@ -421,10 +526,15 @@ class UnitCircle:
 # ------------------------------------ Trigonometric Functions ------------------------------------
 
 
-@_precision
+@precision
 def sine(x: D) -> D:
     r"""
-    Evaluates :math:`\sin(x)`.
+    Evaluates :math:`\sin(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/Sine.html>`_.
+
+    :param x: The value at which to evaluate :math:`\sin(x)`
+    :param n: The number of decimal places of precision
     """
     ucircle = UnitCircle(
         axis_values={"posx": 0, "negx": 0, "posy": 1, "negy": -1},
@@ -440,10 +550,15 @@ def sine(x: D) -> D:
     return _sine(x) if res is None else res
 
 
-@_precision
+@precision
 def cosine(x: D) -> D:
     r"""
-    Evaluates :math:`\cos(x)`.
+    Evaluates :math:`\cos(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/Cosine.html>`_.
+
+    :param x: The value at which to evaluate :math:`\cos(x)`.
+    :param n: The number of decimal places of precision
     """
     ucircle = UnitCircle(
         axis_values={"posx": 1, "negx": -1, "posy": 0, "negy": 0},
@@ -459,10 +574,15 @@ def cosine(x: D) -> D:
     return _cosine(x) if res is None else res
 
 
-@_precision
+@precision
 def tangent(x: D) -> D:
     r"""
-    Evaluates :math:`\tan(x)`.
+    Evaluates :math:`\tan(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/Tangent.html>`_.
+
+    :param x: The value at which to evaluate :math:`\tan(x)`.
+    :param n: The number of decimal places of precision
     """
     ucircle = UnitCircle(axis_values={"posx": 0, "negx": 0, "posy": NAN, "negy": NAN})
 
@@ -473,10 +593,15 @@ def tangent(x: D) -> D:
         return NAN
 
 
-@_precision
+@precision
 def secant(x: D) -> D:
     r"""
-    Evaluates :math:`\sec(x)`.
+    Evaluates :math:`\sec(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/Secant.html>`_.
+
+    :param x: The value at which to evaluate :math:`\sec(x)`.
+    :param n: The number of decimal places of precision
     """
     ucircle = UnitCircle(axis_values={"posx": 1, "negx": -1, "posy": NAN, "negy": NAN})
     
@@ -487,10 +612,15 @@ def secant(x: D) -> D:
         return NAN
 
 
-@_precision
+@precision
 def cosecant(x: D) -> D:
     r"""
-    Evaluates :math:`\csc(x)`.
+    Evaluates :math:`\csc(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/Cosecant.html>`_.
+
+    :param x: The value at which to evaluate :math:`\csc(x)`.
+    :param n: The number of decimal places of precision
     """
     ucircle = UnitCircle(axis_values={"posx": NAN, "negx": NAN, "posy": 1, "negy": -1})
     
@@ -501,10 +631,15 @@ def cosecant(x: D) -> D:
         return NAN
 
 
-@_precision
+@precision
 def cotangent(x: D) -> D:
     r"""
-    Evaluates :math:`\cot(x)`.
+    Evaluates :math:`\cot(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/Cotangent.html>`_.
+
+    :param x: The value at which to evaluate :math:`\cot(x)`.
+    :param n: The number of decimal places of precision
     """
     ucircle = UnitCircle(axis_values={"posx": NAN, "negx": NAN, "posy": 0, "negy": 0})
 
@@ -523,11 +658,15 @@ sec, csc, cot = secant, cosecant, cotangent
 # -------------------------------- Inverse Trigonometric Functions --------------------------------
 
 
-@_precision
+@precision
 def arcsine(x: D) -> D:
     r"""
-    Evaluates :math:`\arcsin(x)`.
+    Evaluates :math:`\arcsin(x)` to ``n`` decimal places of precision.
 
+    `[] <https://mathworld.wolfram.com/InverseSine.html>`_.
+
+    :param x: The value at which to evaluate :math:`\arcsin(x)`.
+    :param n: The number of decimal places of precision
     :raise ValueError: ``x`` is outside the domain of :math:`\arcsin(x)`
     """
     if not abs(x) <= 1:
@@ -537,24 +676,33 @@ def arcsine(x: D) -> D:
         return (PI / 2 if x == 1 else -PI / 2) if abs(x) == 1 else _arcsine(x)
 
 
-@_precision
+@precision
 def arccosine(x: D) -> D:
     r"""
-    Evaluates :math:`\arccos(x)`.
+    Evaluates :math:`\arccos(x)` to ``n`` decimal places of precision.
 
+    `[] <https://mathworld.wolfram.com/InverseCosine.html>`_.
+
+    :param x: The value at which to evaluate :math:`\arccos(x)`.
+    :param n: The number of decimal places of precision
     :raise ValueError: ``x`` is outside the domain of :math:`\arccos(x)`
     """
     if not abs(x) <= 1:
         raise ValueError("domain error")
 
     with decimal.localcontext():
-        return (D(0) if x == 1 else PI) if abs(x) == 1 else PI / 2 - arcsine(x)
+        return (D(0) if x == 1 else PI) if abs(x) == 1 else PI / 2 - _arcsine(x)
 
 
-@_precision
+@precision
 def arctangent(x: D) -> D:
     r"""
-    Evaluates :math:`\arctan(x)`.
+    Evaluates :math:`\arctan(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/InverseTangent.html>`_.
+    
+    :param x: The value at which to evaluate :math:`\arctan(x)`.
+    :param n: The number of decimal places of precision
     """
     if abs(x) is INF:
         return PI / 2 if x is INF else -PI / 2
@@ -563,11 +711,15 @@ def arctangent(x: D) -> D:
         return _arctangent(x) if -1 < x < 1 else arcsine(x / (D(1) + x ** 2).sqrt())
 
 
-@_precision
+@precision
 def arcsecant(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{arcsec}(x)`.
+    Evaluates :math:`\operatorname{arcsec}(x)` to ``n`` decimal places of precision.
 
+    `[] <https://mathworld.wolfram.com/InverseSecant.html>`_.
+
+    :param x: The value at which to evaluate :math:`\operatorname{arcsec}(x)`.
+    :param n: The number of decimal places of precision
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcsec}(x)`
     """
     if not abs(x) >= 1:
@@ -577,11 +729,15 @@ def arcsecant(x: D) -> D:
         return PI / 2 if abs(x) is INF else arccosine(1 / x)
 
 
-@_precision
+@precision
 def arccosecant(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{arccsc}(x)`.
+    Evaluates :math:`\operatorname{arccsc}(x)` to ``n`` decimal places of precision.
 
+    `[] <https://mathworld.wolfram.com/InverseCosecant.html>`_.
+
+    :param x: The value at which to evaluate :math:`\operatorname{arccsc}(x)`.
+    :param n: The number of decimal places of precision
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arccsc}(x)`
     """
     if not abs(x) >= 1:
@@ -591,10 +747,15 @@ def arccosecant(x: D) -> D:
         return D(0) if abs(x) is INF else arcsine(1 / x)
 
 
-@_precision
+@precision
 def arccotangent(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{arccot}(x)`.
+    Evaluates :math:`\operatorname{arccot}(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/InverseCotangent.html>`_.
+
+    :param x: The value at which to evaluate :math:`\arccot(x)`.
+    :param n: The number of decimal places of precision
     """
     with decimal.localcontext():
         return (D(0) if x is INF else PI) if abs(x) is INF else arctangent(1 / x)
@@ -608,42 +769,67 @@ arcsec, arccsc, arccot = arcsecant, arccosecant, arccotangent
 # -------------------------------------- Hyperbolic Functions -------------------------------------
 
 
-@_precision
+@precision
 def hyperbolic_sine(x: D) -> D:
     r"""
-    Evaluates :math:`\sinh(x)`.
+    Evaluates :math:`\sinh(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/HyperbolicSine.html>`_.
+
+    :param x: The value at which to evaluate :math:`\sinh(x)`.
+    :param n: The number of decimal places of precision
     """
     return _hyperbolic_sine(x)
 
 
-@_precision
+@precision
 def hyperbolic_cosine(x: D) -> D:
     r"""
-    Evaluates :math:`\cosh(x)`.
+    Evaluates :math:`\cosh(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/HyperbolicCosine.html>`_.
+
+    :param x: The value at which to evaluate :math:`\cosh(x)`.
+    :param n: The number of decimal places of precision
     """
     return _hyperbolic_cosine(x)
 
 
-@_precision
+@precision
 def hyperbolic_tangent(x: D) -> D:
     r"""
-    Evaluates :math:`\tanh(x)`.
+    Evaluates :math:`\tanh(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/HyperbolicTangent.html>`_.
+
+    :param x: The value at which to evaluate :math:`\tanh(x)`.
+    :param n: The number of decimal places of precision
     """
     return hyperbolic_sine(x) / hyperbolic_cosine(x)
 
 
-@_precision
+@precision
 def hyperbolic_secant(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{sech}(x)`.
+    Evaluates :math:`\operatorname{sech}(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/HyperbolicSecant.html>`_.
+
+    :param x: The value at which to evaluate :math:`\operatorname{sech}(x)`.
+    :param n: The number of decimal places of precision
     """
     return 1 / hyperbolic_cosine(x)
 
 
-@_precision
+@precision
 def hyperbolic_cosecant(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{csch}(x)`.
+    Evaluates :math:`\operatorname{csch}(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/HyperbolicCosecant.html>`_.
+
+    :param x: The value at which to evaluate :math:`\operatorname{csch}(x)`.
+    :param n: The number of decimal places of precision
     """
     try:
         return 1 / hyperbolic_sine(x)
@@ -651,10 +837,15 @@ def hyperbolic_cosecant(x: D) -> D:
         return NAN
 
 
-@_precision
+@precision
 def hyperbolic_cotangent(x: D) -> D:
     r"""
-    Evaluates :math:`\coth(x)`.
+    Evaluates :math:`\coth(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/HyperbolicCotangent.html>`_.
+
+    :param x: The value at which to evaluate :math:`\coth(x)`.
+    :param n: The number of decimal places of precision
     """
     try:
         return hyperbolic_cosine(x) / hyperbolic_sine(x)
@@ -670,19 +861,28 @@ sech, csch, coth = hyperbolic_secant, hyperbolic_cosecant, hyperbolic_cotangent
 # ---------------------------------- Inverse Hyperbolic Functions ----------------------------------
 
 
-@_precision
+@precision
 def hyperbolic_arcsine(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{arsinh}(x)`.
+    Evaluates :math:`\operatorname{arsinh}(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/InverseHyperbolicSine.html>`_.
+
+    :param x: The value at which to evaluate :math:`\operatorname{arsinh}(x)`.
+    :param n: The number of decimal places of precision
     """
     return ln(x + D(x ** 2 + 1).sqrt()) if abs(x) >= 0.95 else _hyperbolic_arcsine(x)
 
 
-@_precision
+@precision
 def hyperbolic_arccosine(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{arcosh}(x)`.
+    Evaluates :math:`\operatorname{arcosh}(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/InverseHyperbolicCosine.html>`_.
     
+    :param x: The value at which to evaluate :math:`\operatorname{arcosh}(x)`.
+    :param n: The number of decimal places of precision
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcosh}(x)`
     """
     if not abs(x) >= 1:
@@ -691,11 +891,15 @@ def hyperbolic_arccosine(x: D) -> D:
     return ln(x + D(x ** 2 - 1).sqrt()) if x ** 2 > 1.95 else hyperbolic_arcsine(x ** 2 - 1)
 
 
-@_precision
+@precision
 def hyperbolic_arctangent(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{artanh}(x)`.
+    Evaluates :math:`\operatorname{artanh}(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/InverseHyperbolicTangent.html>`_.
     
+    :param x: The value at which to evaluate :math:`\operatorname{artanh}(x)`.
+    :param n: The number of decimal places of precision
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{artanh}(x)`
     """
     if not abs(x) < 1:
@@ -704,11 +908,15 @@ def hyperbolic_arctangent(x: D) -> D:
     return _hyperbolic_arctangent(x)
 
 
-@_precision
+@precision
 def hyperbolic_arcsecant(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{arsech}(x)`.
+    Evaluates :math:`\operatorname{arsech}(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/InverseHyperbolicSecant.html>`_.
     
+    :param x: The value at which to evaluate :math:`\operatorname{arsech}(x)`.
+    :param n: The number of decimal places of precision
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arsech}(x)`
     """
     if not 0 < x <= 1:
@@ -717,11 +925,15 @@ def hyperbolic_arcsecant(x: D) -> D:
     return hyperbolic_cosine(1 / x)
 
 
-@_precision
+@precision
 def hyperbolic_arccosecant(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{arcsch}(x)`.
+    Evaluates :math:`\operatorname{arcsch}(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/InverseHyperbolicCosecant.html>`_.
     
+    :param x: The value at which to evaluate :math:`\operatorname{arcsch}(x)`.
+    :param n: The number of decimal places of precision
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcsch}(x)`
     """
     try:
@@ -730,12 +942,16 @@ def hyperbolic_arccosecant(x: D) -> D:
         return NAN
 
 
-@_precision
+@precision
 def hyperbolic_arccotangent(x: D) -> D:
     r"""
-    Evaluates :math:`\operatorname{arcoth}(x)`.
+    Evaluates :math:`\operatorname{arcoth}(x)` to ``n`` decimal places of precision.
+
+    `[] <https://mathworld.wolfram.com/InverseHyperbolicCotangent.html>`_.
     
-    :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{artanh}(x)`
+    :param x: The value at which to evaluate :math:`\operatorname{arcoth}(x)`.
+    :param n: The number of decimal places of precision
+    :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcoth}(x)`
     """
     if not abs(x) > 1:
         raise ValueError("domain error")
