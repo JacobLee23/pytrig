@@ -1,7 +1,7 @@
 Pytrig Documentation
 ====================
 
-**Pytrig**,  A pure-Python package for high-precision computation of trigonometric functions.
+**Pytrig**, a pure-Python module for rapid, high-precision computation of trigonometric functions.
 
 -----
 
