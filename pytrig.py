@@ -36,7 +36,6 @@ The **pytrig** module supports computation of the following functions and classe
 
 import decimal
 from decimal import Decimal
-import functools
 from math import comb, factorial
 import typing
 
@@ -55,36 +54,9 @@ NAN = Decimal("NaN")
 PRECISION = 100
 
 
-def precision(
-        func: typing.Callable[[Decimal], Decimal]
-    ) -> typing.Callable[[Decimal, int], Decimal]:
-    """
-    :param func:
-    :return:
-    """
-    @functools.wraps(func)
-    def wrapper(x: Decimal, prec: int = PRECISION) -> Decimal:
-        """
-        :param x:
-        :param prec:
-        :return:
-        """
-        with decimal.localcontext() as ctx:
-            ctx.prec = prec + 4
-
-            res = func(x)
-            if res is NAN:
-                return res
-
-            return Decimal(res).quantize(Decimal(10) ** -prec).normalize()
-
-    return wrapper
-
-
 # --------------------------------------- Angle Conversions ----------------------------------------
 
 
-@precision
 def to_degrees(theta: Decimal) -> Decimal:
     r"""
     Converts an angle measure from radians to degrees.
@@ -95,7 +67,6 @@ def to_degrees(theta: Decimal) -> Decimal:
     return theta * 180 / PI
 
 
-@precision
 def to_radians(theta: Decimal) -> Decimal:
     r"""
     Converts an angle measure from degrees to radians.
@@ -109,13 +80,14 @@ def to_radians(theta: Decimal) -> Decimal:
 # --------------------------------------- Pi Approximations ---------------------------------------
 
 
-def chudnovsky_algorithm(prec: int = PRECISION) -> Decimal:
+def pi(prec: int = PRECISION) -> Decimal:
     r"""
     The Chudnovsky algorithm:
 
     .. math::
 
-        \frac{1}{\pi} = 12 \sum_{q=0}^{\infty} \frac{{(-1)}^{q}(6q)!(545140134q+13591409)}{(3q)!{(q!)}^{3}{(640320)}^{3q+\frac{3}{2}}}
+        \frac{1}{\pi}
+        = 12 \sum_{q=0}^{\infty} \frac{{(-1)}^{q}(6q)!(545140134q+13591409)}{(3q)!{(q!)}^{3}{(640320)}^{3q+\frac{3}{2}}}
 
     `[11] <https://en.wikipedia.org/wiki/Chudnovsky_algorithm#Algorithm>`_.
 
@@ -123,7 +95,9 @@ def chudnovsky_algorithm(prec: int = PRECISION) -> Decimal:
 
     .. math::
 
-        \frac{{(640320)}^{\frac{3}{2}}}{12 \pi} = \frac{426880 \sqrt{10005}}{\pi} = \sum_{q=0}^{\infty} \frac{(6q)!(545140134q+13591409)}{(3q)!{(q!)}^{3}{(-262537412640768000)}^{q}}
+        \frac{{(640320)}^{\frac{3}{2}}}{12 \pi}
+        = \frac{426880 \sqrt{10005}}{\pi}
+        = \sum_{q=0}^{\infty} \frac{(6q)!(545140134q+13591409)}{(3q)!{(q!)}^{3}{(-262537412640768000)}^{q}}
 
     The result can then be generalized as the following:
 
@@ -144,9 +118,6 @@ def chudnovsky_algorithm(prec: int = PRECISION) -> Decimal:
         X_{q} = {(-262537412640768000)}^{q}
 
     This generalization is the method this function uses to compute approximations of :math:`\pi`.
-
-    The time complexity of this algorithm is :math:`O(n{(\log n)}^{3})`
-    `[12] <http://www.numberworld.org/y-cruncher/internals/formulas.html>`_.
 
     :param prec: The number of decimal places of precision
     """
@@ -182,13 +153,13 @@ def chudnovsky_algorithm(prec: int = PRECISION) -> Decimal:
             k += 1
 
 
-PI = chudnovsky_algorithm()
+PI = pi()
 
 
 # ---------------------------------- Maclaurin Series Expansions ----------------------------------
 
 
-def ms_natural_logarithm(n: int, x: Decimal) -> Decimal:
+def ms_natural_logarithm(n: int, x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     The Maclaurin series expansion for :math:`\ln(x)`:
 
@@ -211,12 +182,16 @@ def ms_natural_logarithm(n: int, x: Decimal) -> Decimal:
 
     :param n: The 0-based index of the series term to compute
     :param x: The value at which to evaluate the series term
+    :param prec: The number of decimal places of precision
     :return: The ``n``-th term of the Maclaurin series for :math:`\ln(x)`, evaluated at ``x``
     """
-    return Decimal(-1) ** (n + 2) / Decimal(n + 1) * Decimal((x - 1) ** (n + 1))
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 4
+        res = Decimal(-1) ** (n + 2) / Decimal(n + 1) * Decimal((x - 1) ** (n + 1))
+        return res.quantize(Decimal(10) ** -prec).normalize()
 
 
-def ms_sine(n: int, x: Decimal) -> Decimal:
+def ms_sine(n: int, x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     The Maclaurin series expansion for :math:`\sin(x)`:
 
@@ -228,12 +203,16 @@ def ms_sine(n: int, x: Decimal) -> Decimal:
 
     :param n: The 0-based index of the series term to compute
     :param x: The value at which to evaluate the series term
+    :param prec: The number of decimal places of precision
     :return: The ``n``-th term of the Maclaurin series for :math:`\sin(x)`, evaluated at ``x``
     """
-    return Decimal(-1) ** n / Decimal(factorial(2 * n + 1)) * Decimal(x ** (2 * n + 1))
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 4
+        res = Decimal(-1) ** n / Decimal(factorial(2 * n + 1)) * Decimal(x ** (2 * n + 1))
+        return res.quantize(Decimal(10) ** -prec).normalize()
 
 
-def ms_cosine(n: int, x: Decimal) -> Decimal:
+def ms_cosine(n: int, x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     The Maclaurin series expansion for :math:`\cos(x)`:
 
@@ -245,12 +224,16 @@ def ms_cosine(n: int, x: Decimal) -> Decimal:
 
     :param n: The 0-based index of the series term to compute
     :param x: The value at which to evaluate the series term
+    :param prec: The number of decimal places of precision
     :return: The ``n``-th term of the Maclaurin series for :math:`\cos(x)`, evaluated at ``x``
     """
-    return Decimal(-1) ** n / Decimal(factorial(2 * n)) * Decimal(x ** (2 * n))
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 4
+        res = Decimal(-1) ** n / Decimal(factorial(2 * n)) * Decimal(x ** (2 * n))
+        return res.quantize(Decimal(10) ** -prec).normalize()
 
 
-def ms_arcsine(n: int, x: Decimal) -> Decimal:
+def ms_arcsine(n: int, x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     The Maclaurin series expansion for :math:`\arcsin(x)`:
 
@@ -262,12 +245,16 @@ def ms_arcsine(n: int, x: Decimal) -> Decimal:
 
     :param n: The 0-based index of the series term to compute
     :param x: The value at which to evaluate the series term
+    :param prec: The number of decimal places of precision
     :return: The ``n``-th term of the Maclaurin series for :math:`\arcsin(x)`, evaluated at ``x``
     """
-    return (1 / Decimal(4)) ** n * Decimal(comb(2 * n, n)) * (Decimal(x ** (2 * n + 1)) / Decimal(2 * n + 1))
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 4
+        res = (1 / Decimal(4)) ** n * Decimal(comb(2 * n, n)) * (Decimal(x ** (2 * n + 1)) / Decimal(2 * n + 1))
+        return res.quantize(Decimal(10) ** -prec).normalize()
 
 
-def ms_arctangent(n: int, x: Decimal) -> Decimal:
+def ms_arctangent(n: int, x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     The Maclaurin series expansion for :math:`\arctan(x)`:
 
@@ -279,12 +266,16 @@ def ms_arctangent(n: int, x: Decimal) -> Decimal:
 
     :param n: The 0-based index of the series term to compute
     :param x: The value at which to evaluate the series term
+    :param prec: The number of decimal places of precision
     :return: The ``n``-th term of the Maclaurin series for :math:`\arctan(x)`, evaluated at ``x``
     """
-    return Decimal(-1) ** n / Decimal(2 * n + 1) * Decimal(x ** (2 * n + 1))
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 4
+        res = Decimal(-1) ** n / Decimal(2 * n + 1) * Decimal(x ** (2 * n + 1))
+        return res.quantize(Decimal(10) ** -prec).normalize()
 
 
-def ms_hyperbolic_sine(n: int, x: Decimal) -> Decimal:
+def ms_hyperbolic_sine(n: int, x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     The Maclaurin series expansion for :math:`\sinh(x)`:
 
@@ -296,12 +287,16 @@ def ms_hyperbolic_sine(n: int, x: Decimal) -> Decimal:
 
     :param n: The 0-based index of the series term to compute
     :param x: The value at which to evaluate the series term
+    :param prec: The number of decimal places of precision
     :return: The ``n``-th term of the Maclaurin series for :math:`\sinh(x)`, evaluated at ``x``
     """
-    return Decimal(x ** (2 * n + 1)) / Decimal(factorial(2 * n + 1))
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 4
+        res = Decimal(x ** (2 * n + 1)) / Decimal(factorial(2 * n + 1))
+        return res.quantize(Decimal(10) ** -prec).normalize()
 
 
-def ms_hyperbolic_cosine(n: int, x: Decimal) -> Decimal:
+def ms_hyperbolic_cosine(n: int, x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     The Maclaurin series expansion for :math:`\cosh(x)`:
 
@@ -313,12 +308,16 @@ def ms_hyperbolic_cosine(n: int, x: Decimal) -> Decimal:
 
     :param n: The 0-based index of the series term to compute
     :param x: The value at which to evaluate the series term
+    :param prec: The number of decimal places of precision
     :return: The ``n``-th term of the Maclaurin series for :math:`\cosh(x)`, evaluated at ``x``
     """
-    return Decimal(x ** (2 * n)) / Decimal(factorial(2 * n))
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 4
+        res = Decimal(x ** (2 * n)) / Decimal(factorial(2 * n))
+        return res.quantize(Decimal(10) ** -prec).normalize()
 
 
-def ms_hyperbolic_arcsine(n: int, x: Decimal) -> Decimal:
+def ms_hyperbolic_arcsine(n: int, x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     The Maclaurin series expansion for :math:`\operatorname{arsinh}(x)`:
 
@@ -330,12 +329,16 @@ def ms_hyperbolic_arcsine(n: int, x: Decimal) -> Decimal:
 
     :param n: The 0-based index of the series term to compute
     :param x: The value at which to evaluate the series term
+    :param prec: The number of decimal places of precision
     :return: The ``n``-th term of the Maclaurin series for :math:`\operatorname{arsinh}(x)`, evaluated at ``x``
     """
-    return (Decimal(-1) / Decimal(4)) ** n * Decimal(comb(2 * n, n)) * (Decimal(x ** (2 * n + 1)) / Decimal(2 * n + 1))
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 4
+        res = (-1 / Decimal(4)) ** n * Decimal(comb(2 * n, n)) * (Decimal(x ** (2 * n + 1)) / Decimal(2 * n + 1))
+        return res.quantize(Decimal(10) ** -prec).normalize()
 
 
-def ms_hyperbolic_arctangent(n: int, x: Decimal) -> Decimal:
+def ms_hyperbolic_arctangent(n: int, x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     The Maclaurin series expansion for :math:`\operatorname{artanh}(x)`:
 
@@ -347,52 +350,54 @@ def ms_hyperbolic_arctangent(n: int, x: Decimal) -> Decimal:
 
     :param n: The 0-based index of the series term to compute
     :param x: The value at which to evaluate the series term
+    :param prec: The number of decimal places of precision
     :return: The ``n``-th term of the Maclaurin series for :math:`\operatorname{artanh}(x)`, evaluated at ``x``
     """
-    return Decimal(x ** (2 * n + 1)) / Decimal(2 * n + 1)
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec + 4
+        res = Decimal(x ** (2 * n + 1)) / Decimal(2 * n + 1)
+        return res.quantize(Decimal(10) ** -prec).normalize()
 
 
 class MaclaurinExpansion:
     """
-    :param func:
+    :param func: A callable object that takes parameters ``n`` and ``x`` and returns the value of
+    the :math:`n`-th term of the Maclaurin series expansion of the represented mathematical
+    function, evaluated at :math:`x`
     """
     def __init__(self, func: typing.Callable[[int, Decimal], Decimal]):
-        self._func = func
+        self.func = func
 
-    def __call__(self, x: Decimal) -> Decimal:
-        return sum(self.expand(x))
+    def __call__(self, x: Decimal, prec: int = PRECISION) -> Decimal:
+        return sum(self.expand(x, prec))
 
-    @property
-    def func(self) -> typing.Callable[[int, Decimal], Decimal]:
-        """
-        A callable object that takes parameters ``n`` and ``x`` and returns the value of the
-        :math:`n`-th term of the Maclaurin series expansion of the represented mathematical function
-        evaluated at :math:`x`.
-        """
-        return self._func
-
-    def expand(self, x: Decimal) -> typing.Generator[Decimal, None, None]:
+    def expand(self, x: Decimal, prec: int = PRECISION) -> typing.Generator[Decimal, None, None]:
         """
         Returns a generator of the values of the terms of the Maclaurin series expansion of a
         function evaluated at ``x``. The generator stops when the next term of the series
         approximately equals :math:`0` to the given number of decimal places of precision.
 
         :param x: The :math:`x`-value at which the Maclaurin series is evaluated
+        :param prec: The number of decimal places of precision
         :return: A generator of the values of the terms of the Maclaurin series expansion
         """
         n = 0
-        while True:
-            try:
-                term = self.func(n, x)
-            except decimal.Overflow:
-                return
 
-            if term + Decimal(1) == Decimal(1):
-                return
+        with decimal.localcontext() as ctx:
+            ctx.prec = prec
 
-            yield term
+            while True:
+                try:
+                    term = self.func(n, x)
+                except decimal.Overflow:
+                    return
 
-            n += 1
+                if term + Decimal(1) == Decimal(1):
+                    return
+
+                yield term
+
+                n += 1
 
 
 _natural_logarithm = MaclaurinExpansion(ms_natural_logarithm)
@@ -410,9 +415,10 @@ _hyperbolic_arctangent = MaclaurinExpansion(ms_hyperbolic_arctangent)
 # -------------------------------- Natural Logarithm Approximation --------------------------------
 
 
-@precision
-def natural_logarithm(x: Decimal) -> Decimal:
+def natural_logarithm(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
+    Evaluates :math:`\ln(x), x \in (0, \infty)` to ``prec`` decimal places of precision.
+
     Let :math:`f(x)` be the Maclaurin series expansion (see :py:func:`ms_natural_logarithm`) of
     :math:`\ln(x)` evaluated at ``x``. This function approximates :math:`\ln(x)` using the
     following piecewise function:
@@ -442,11 +448,11 @@ def natural_logarithm(x: Decimal) -> Decimal:
     :raise ValueError: The value of 'x' is outside the domain of :math:`\ln`(x)
     """
     if 0 < x < 1:
-        return _natural_logarithm(x)
+        return _natural_logarithm(x, prec)
     if x == 1:
         return Decimal(0)
     if x > 1:
-        return -natural_logarithm(1 / x)
+        return -natural_logarithm(1 / x, prec)
     raise ValueError("domain error")
 
 
@@ -456,10 +462,9 @@ ln = natural_logarithm
 # ------------------------------------ Trigonometric Functions ------------------------------------
 
 
-@precision
-def sine(x: Decimal) -> Decimal:
+def sine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\sin(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\sin(x), x \in \mathbb{R}` to ``prec`` decimal places of precision.
 
     `[] <https://mathworld.wolfram.com/Sine.html>`_.
 
@@ -472,13 +477,12 @@ def sine(x: Decimal) -> Decimal:
     :return:
     :rtype: decimal.Decimal
     """
-    return _sine(x)
+    return _sine(x, prec)
 
 
-@precision
-def cosine(x: Decimal) -> Decimal:
+def cosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\cos(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\cos(x), x \in \mathbb{R}` to ``prec`` decimal places of precision.
 
     `[] <https://mathworld.wolfram.com/Cosine.html>`_.
 
@@ -491,13 +495,12 @@ def cosine(x: Decimal) -> Decimal:
     :return:
     :rtype: decimal.Decimal
     """
-    return _cosine(x)
+    return _cosine(x, prec)
 
 
-@precision
-def tangent(x: Decimal) -> Decimal:
+def tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\tan(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\tan(x), x \in \{k | k \in \mathbb{R}\}` to ``prec`` decimal places of precision.
 
     `[] <https://mathworld.wolfram.com/Tangent.html>`_.
 
@@ -511,13 +514,12 @@ def tangent(x: Decimal) -> Decimal:
     :rtype: decimal.Decimal
     """
     try:
-        return sine(x) / cosine(x)
+        return sine(x, prec) / cosine(x, prec)
     except ZeroDivisionError:
         return NAN
 
 
-@precision
-def secant(x: Decimal) -> Decimal:
+def secant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\sec(x)` to ``prec`` decimal places of precision.
 
@@ -533,13 +535,12 @@ def secant(x: Decimal) -> Decimal:
     :rtype: decimal.Decimal
     """
     try:
-        return 1 / cosine(x)
+        return 1 / cosine(x, prec)
     except ZeroDivisionError:
         return NAN
 
 
-@precision
-def cosecant(x: Decimal) -> Decimal:
+def cosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\csc(x)` to ``prec`` decimal places of precision.
 
@@ -555,13 +556,12 @@ def cosecant(x: Decimal) -> Decimal:
     :rtype: decimal.Decimal
     """
     try:
-        return 1 / sine(x)
+        return 1 / sine(x, prec)
     except ZeroDivisionError:
         return NAN
 
 
-@precision
-def cotangent(x: Decimal) -> Decimal:
+def cotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\cot(x)` to ``prec`` decimal places of precision.
 
@@ -577,7 +577,7 @@ def cotangent(x: Decimal) -> Decimal:
     :rtype: decimal.Decimal
     """
     try:
-        return cosine(x) / sine(x)
+        return cosine(x, prec) / sine(x, prec)
     except ZeroDivisionError:
         return NAN
 
@@ -590,8 +590,7 @@ sec, csc, cot = secant, cosecant, cotangent
 # -------------------------------- Inverse Trigonometric Functions --------------------------------
 
 
-@precision
-def arcsine(x: Decimal) -> Decimal:
+def arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Let :math:`f(x)` be the Maclaurin series expansion (see :py:func:`ms_arcsine`) of
     :math:`\arcsin(x)` evaluated at ``x``. This function approximates :math:`\arcsin(x)` using the
@@ -625,16 +624,15 @@ def arcsine(x: Decimal) -> Decimal:
     :raise ValueError: ``x`` is outside the domain of :math:`\arcsin(x)`
     """
     if x == -1:
-        return -PI / 2
+        return -pi(prec) / 2
     if -1 < x < 1:
-        return _arcsine(x)
+        return _arcsine(x, prec)
     if x == 1:
-        return PI / 2
+        return pi(prec) / 2
     raise ValueError("domain error")
 
 
-@precision
-def arccosine(x: Decimal) -> Decimal:
+def arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Let :math:`f(x)` be the Maclaurin series expansion (see :py:func:`ms_arcsine`) of
     :math:`\arcsin(x)` evaluated at ``x``. This function approximates :math:`\arccos(x)` using the
@@ -668,16 +666,15 @@ def arccosine(x: Decimal) -> Decimal:
     :raise ValueError: ``x`` is outside the domain of :math:`\arccos(x)`
     """
     if x == -1:
-        return PI
+        return pi(prec)
     if -1 < x < 1:
-        return PI / 2 - _arcsine(x)
+        return pi(prec) / 2 - _arcsine(x, prec)
     if x == 1:
         return Decimal(0)
     raise ValueError("domain error")
 
 
-@precision
-def arctangent(x: Decimal) -> Decimal:
+def arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Let :math:`f(x)` be the Maclaurin series expansion (see :py:func:`ms_arctangent`) of
     :math:`\arctan(x)` evaluated at ``x``. This function approximates :math:`\arctan(x)` using the
@@ -711,16 +708,15 @@ def arctangent(x: Decimal) -> Decimal:
     :rtype: decimal.Decimal
     """
     if x == -INF:
-        return -PI / 2
+        return -pi(prec) / 2
     if x == INF:
-        return PI / 2
+        return pi(prec) / 2
     if -1 < x < 1:
-        return _arctangent(x)
-    return arcsine(x / (Decimal(1) + x ** 2).sqrt())
+        return _arctangent(x, prec)
+    return arcsine(x / (Decimal(1) + x ** 2).sqrt(), prec)
 
 
-@precision
-def arcsecant(x: Decimal) -> Decimal:
+def arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     This function approximates :math:`\operatorname{arcsec}(x)` using the following piecewise
     function:
@@ -750,16 +746,15 @@ def arcsecant(x: Decimal) -> Decimal:
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcsec}(x)`
     """
     if x == -INF:
-        return PI / 2
+        return pi(prec) / 2
     if x == INF:
-        return PI / 2
+        return pi(prec) / 2
     if x <= -1 or x >= 1:
-        return arccosine(1 / x)
+        return arccosine(1 / x, prec)
     raise ValueError("domain error")
 
 
-@precision
-def arccosecant(x: Decimal) -> Decimal:
+def arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     This function approximates :math:`\operatorname{arccsc}(x)` using the following piecewise
     function:
@@ -793,12 +788,11 @@ def arccosecant(x: Decimal) -> Decimal:
     if x == INF:
         return Decimal(0)
     if x <= -1 or x >= 1:
-        return arcsine(1 / x)
+        return arcsine(1 / x, prec)
     raise ValueError("domain error")
 
 
-@precision
-def arccotangent(x: Decimal) -> Decimal:
+def arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     This function approximates :math:`\operatorname{arccot}(x)` using the following piecewise
     function:
@@ -827,10 +821,10 @@ def arccotangent(x: Decimal) -> Decimal:
     :rtype: decimal.Decimal
     """
     if x == -INF:
-        return PI
+        return pi(prec)
     if x == INF:
         return Decimal(0)
-    return arctangent(1 / x)
+    return arctangent(1 / x, prec)
 
 
 # Shorthands for inverse trigonometric functions
@@ -841,8 +835,7 @@ arcsec, arccsc, arccot = arcsecant, arccosecant, arccotangent
 # -------------------------------------- Hyperbolic Functions -------------------------------------
 
 
-@precision
-def hyperbolic_sine(x: Decimal) -> Decimal:
+def hyperbolic_sine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\sinh(x)` to ``prec`` decimal places of precision.
 
@@ -857,11 +850,10 @@ def hyperbolic_sine(x: Decimal) -> Decimal:
     :return:
     :rtype: decimal.Decimal
     """
-    return _hyperbolic_sine(x)
+    return _hyperbolic_sine(x, prec)
 
 
-@precision
-def hyperbolic_cosine(x: Decimal) -> Decimal:
+def hyperbolic_cosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\cosh(x)` to ``prec`` decimal places of precision.
 
@@ -876,11 +868,10 @@ def hyperbolic_cosine(x: Decimal) -> Decimal:
     :return:
     :rtype: decimal.Decimal
     """
-    return _hyperbolic_cosine(x)
+    return _hyperbolic_cosine(x, prec)
 
 
-@precision
-def hyperbolic_tangent(x: Decimal) -> Decimal:
+def hyperbolic_tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\tanh(x)` to ``prec`` decimal places of precision.
 
@@ -895,11 +886,10 @@ def hyperbolic_tangent(x: Decimal) -> Decimal:
     :return:
     :rtype: decimal.Decimal
     """
-    return hyperbolic_sine(x) / hyperbolic_cosine(x)
+    return hyperbolic_sine(x, prec) / hyperbolic_cosine(x, prec)
 
 
-@precision
-def hyperbolic_secant(x: Decimal) -> Decimal:
+def hyperbolic_secant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\operatorname{sech}(x)` to ``prec`` decimal places of precision.
 
@@ -914,11 +904,10 @@ def hyperbolic_secant(x: Decimal) -> Decimal:
     :return:
     :rtype: decimal.Decimal
     """
-    return 1 / hyperbolic_cosine(x)
+    return 1 / hyperbolic_cosine(x, prec)
 
 
-@precision
-def hyperbolic_cosecant(x: Decimal) -> Decimal:
+def hyperbolic_cosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\operatorname{csch}(x)` to ``prec`` decimal places of precision.
 
@@ -934,13 +923,12 @@ def hyperbolic_cosecant(x: Decimal) -> Decimal:
     :rtype: decimal.Decimal
     """
     try:
-        return 1 / hyperbolic_sine(x)
+        return 1 / hyperbolic_sine(x, prec)
     except ZeroDivisionError:
         return NAN
 
 
-@precision
-def hyperbolic_cotangent(x: Decimal) -> Decimal:
+def hyperbolic_cotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\coth(x)` to ``prec`` decimal places of precision.
 
@@ -956,7 +944,7 @@ def hyperbolic_cotangent(x: Decimal) -> Decimal:
     :rtype: decimal.Decimal
     """
     try:
-        return hyperbolic_cosine(x) / hyperbolic_sine(x)
+        return hyperbolic_cosine(x, prec) / hyperbolic_sine(x, prec)
     except ZeroDivisionError:
         return NAN
 
@@ -969,8 +957,7 @@ sech, csch, coth = hyperbolic_secant, hyperbolic_cosecant, hyperbolic_cotangent
 # ---------------------------------- Inverse Hyperbolic Functions ----------------------------------
 
 
-@precision
-def hyperbolic_arcsine(x: Decimal) -> Decimal:
+def hyperbolic_arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\operatorname{arsinh}(x)` to ``prec`` decimal places of precision.
 
@@ -986,12 +973,11 @@ def hyperbolic_arcsine(x: Decimal) -> Decimal:
     :rtype: decimal.Decimal
     """
     if abs(x) >= 0.95:
-        return ln(x + Decimal(x ** 2 + 1).sqrt())
+        return ln(x + Decimal(x ** 2 + 1).sqrt(), prec)
     return _hyperbolic_arcsine(x)
 
 
-@precision
-def hyperbolic_arccosine(x: Decimal) -> Decimal:
+def hyperbolic_arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\operatorname{arcosh}(x)` to ``prec`` decimal places of precision.
 
@@ -1010,12 +996,11 @@ def hyperbolic_arccosine(x: Decimal) -> Decimal:
     if not abs(x) >= 1:
         raise ValueError("domain error")
     if x ** 2 > 1.95:
-        return ln(x + Decimal(x ** 2 - 1).sqrt())
-    return hyperbolic_arcsine(x ** 2 - 1)
+        return ln(x + Decimal(x ** 2 - 1).sqrt(), prec)
+    return hyperbolic_arcsine(x ** 2 - 1, prec)
 
 
-@precision
-def hyperbolic_arctangent(x: Decimal) -> Decimal:
+def hyperbolic_arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\operatorname{artanh}(x)` to ``prec`` decimal places of precision.
 
@@ -1033,11 +1018,10 @@ def hyperbolic_arctangent(x: Decimal) -> Decimal:
     """
     if not abs(x) < 1:
         raise ValueError("domain error")
-    return _hyperbolic_arctangent(x)
+    return _hyperbolic_arctangent(x, prec)
 
 
-@precision
-def hyperbolic_arcsecant(x: Decimal) -> Decimal:
+def hyperbolic_arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\operatorname{arsech}(x)` to ``prec`` decimal places of precision.
 
@@ -1055,11 +1039,10 @@ def hyperbolic_arcsecant(x: Decimal) -> Decimal:
     """
     if not 0 < x <= 1:
         raise ValueError("domain error")
-    return hyperbolic_cosine(1 / x)
+    return hyperbolic_cosine(1 / x, prec)
 
 
-@precision
-def hyperbolic_arccosecant(x: Decimal) -> Decimal:
+def hyperbolic_arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\operatorname{arcsch}(x)` to ``prec`` decimal places of precision.
 
@@ -1076,13 +1059,12 @@ def hyperbolic_arccosecant(x: Decimal) -> Decimal:
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcsch}(x)`
     """
     try:
-        return hyperbolic_arcsine(1 / x)
+        return hyperbolic_arcsine(1 / x, prec)
     except ZeroDivisionError:
         return NAN
 
 
-@precision
-def hyperbolic_arccotangent(x: Decimal) -> Decimal:
+def hyperbolic_arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\operatorname{arcoth}(x)` to ``prec`` decimal places of precision.
 
@@ -1100,7 +1082,7 @@ def hyperbolic_arccotangent(x: Decimal) -> Decimal:
     """
     if not abs(x) > 1:
         raise ValueError("domain error")
-    return hyperbolic_tangent(1 / x)
+    return hyperbolic_tangent(1 / x, prec)
 
 
 # Shorthands for inverse hyperbolic functions
