@@ -50,8 +50,6 @@ Computation Precision
     :type: int
     :value: 100
 
-.. autofunction:: precision
-
 Angle Conversions
 -----------------
 
@@ -61,11 +59,11 @@ Angle Conversions
 Pi Approximations
 -----------------
 
-.. autofunction:: chudnovsky_algorithm
+.. autofunction:: pi
 
 .. py:data:: PI
 
-    An approximation of :math:`\pi` as computed by :py:func:`chudnovsky_algorithm`, to :py:data:`PRECISION` decimal places of precision.
+    An approximation of :math:`\pi` as computed by :py:func:`pi`, to :py:data:`PRECISION` decimal places of precision.
 
     :type: decimal.Decimal
 
@@ -88,45 +86,45 @@ Maclaurin Series Expansions
 Natural Logarithm Approximations
 --------------------------------
 
-.. autofunction:: natural_logarithm(x: decimal.Decimal, prec: int)
+.. autofunction:: natural_logarithm
 
 
 Trigonometric Functions
 -----------------------
 
-.. autofunction:: sine(x: decimal.Decimal, prec: int)
-.. autofunction:: cosine(x: decimal.Decimal, prec: int)
-.. autofunction:: tangent(x: decimal.Decimal, prec: int)
-.. autofunction:: secant(x: decimal.Decimal, prec: int)
-.. autofunction:: cosecant(x: decimal.Decimal, prec: int)
-.. autofunction:: cotangent(x: decimal.Decimal, prec: int)
+.. autofunction:: sine
+.. autofunction:: cosine
+.. autofunction:: tangent
+.. autofunction:: secant
+.. autofunction:: cosecant
+.. autofunction:: cotangent
 
 Inverse Trigonometric Functions
 -------------------------------
 
-.. autofunction:: arcsine(x: decimal.Decimal, prec: int)
-.. autofunction:: arccosine(x: decimal.Decimal, prec: int)
-.. autofunction:: arctangent(x: decimal.Decimal, prec: int)
-.. autofunction:: arcsecant(x: decimal.Decimal, prec: int)
-.. autofunction:: arccosecant(x: decimal.Decimal, prec: int)
-.. autofunction:: arccotangent(x: decimal.Decimal, prec: int)
+.. autofunction:: arcsine
+.. autofunction:: arccosine
+.. autofunction:: arctangent
+.. autofunction:: arcsecant
+.. autofunction:: arccosecant
+.. autofunction:: arccotangent
 
 Hyperbolic Functions
 --------------------
 
-.. autofunction:: hyperbolic_sine(x: decimal.Decimal, prec: int)
-.. autofunction:: hyperbolic_cosine(x: decimal.Decimal, prec: int)
-.. autofunction:: hyperbolic_tangent(x: decimal.Decimal, prec: int)
-.. autofunction:: hyperbolic_secant(x: decimal.Decimal, prec: int)
-.. autofunction:: hyperbolic_cosecant(x: decimal.Decimal, prec: int)
-.. autofunction:: hyperbolic_cotangent(x: decimal.Decimal, prec: int)
+.. autofunction:: hyperbolic_sine
+.. autofunction:: hyperbolic_cosine
+.. autofunction:: hyperbolic_tangent
+.. autofunction:: hyperbolic_secant
+.. autofunction:: hyperbolic_cosecant
+.. autofunction:: hyperbolic_cotangent
 
 Inverse Hyperbolic Functions
 ----------------------------
 
-.. autofunction:: hyperbolic_arcsine(x: decimal.Decimal, prec: int)
-.. autofunction:: hyperbolic_arccosine(x: decimal.Decimal, prec: int)
-.. autofunction:: hyperbolic_arctangent(x: decimal.Decimal, prec: int)
-.. autofunction:: hyperbolic_arcsecant(x: decimal.Decimal, prec: int)
-.. autofunction:: hyperbolic_arccosecant(x: decimal.Decimal, prec: int)
-.. autofunction:: hyperbolic_arccotangent(x: decimal.Decimal, prec: int)
+.. autofunction:: hyperbolic_arcsine
+.. autofunction:: hyperbolic_arccosine
+.. autofunction:: hyperbolic_arctangent
+.. autofunction:: hyperbolic_arcsecant
+.. autofunction:: hyperbolic_arccosecant
+.. autofunction:: hyperbolic_arccotangent

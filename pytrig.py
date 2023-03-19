@@ -57,24 +57,26 @@ PRECISION = 100
 # --------------------------------------- Angle Conversions ----------------------------------------
 
 
-def to_degrees(theta: Decimal) -> Decimal:
+def to_degrees(theta: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Converts an angle measure from radians to degrees.
+    Converts an angle measure from radians (:math:`rad`) to degrees (:math:`^{\circ}`).
 
-    :param theta: The angle measure, in radians (:math:`rad`)
-    :return: The angle measure, in degrees (:math:`^{\circ}`)
+    :param theta: The angle measure, in radians
+    :param prec: The number of decimal places of precision
+    :return: The angle measure, in degrees, to ``prec`` decimal places of precision
     """
-    return theta * 180 / PI
+    return theta * 180 / pi(prec)
 
 
-def to_radians(theta: Decimal) -> Decimal:
+def to_radians(theta: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Converts an angle measure from degrees to radians.
+    Converts an angle measure from degrees (:math:`^{\circ}`) to radians (:math:`rad`).
 
-    :param theta: The angle measure, in degrees (:math:`^{\circ}`)
-    :return: The angle measure, in radians (:math:`rad`)
+    :param theta: The angle measure, in degrees
+    :param prec: The number of decimal places of precision
+    :return: The angle measure, in radians, to ``prec`` decimal places of precision
     """
-    return theta * PI / 180
+    return theta * pi(prec) / 180
 
 
 # --------------------------------------- Pi Approximations ---------------------------------------
@@ -82,12 +84,14 @@ def to_radians(theta: Decimal) -> Decimal:
 
 def pi(prec: int = PRECISION) -> Decimal:
     r"""
-    The Chudnovsky algorithm:
+    Uses the Chudnovsky algorithm to approximate the value of :math:`\pi` to ``prec`` decimal
+    places of precision:
 
     .. math::
 
         \frac{1}{\pi}
-        = 12 \sum_{q=0}^{\infty} \frac{{(-1)}^{q}(6q)!(545140134q+13591409)}{(3q)!{(q!)}^{3}{(640320)}^{3q+\frac{3}{2}}}
+        = 12 \sum_{q=0}^{\infty}
+        \frac{{(-1)}^{q}(6q)!(545140134q+13591409)}{(3q)!{(q!)}^{3}{(640320)}^{3q+\frac{3}{2}}}
 
     `[11] <https://en.wikipedia.org/wiki/Chudnovsky_algorithm#Algorithm>`_.
 
@@ -97,9 +101,10 @@ def pi(prec: int = PRECISION) -> Decimal:
 
         \frac{{(640320)}^{\frac{3}{2}}}{12 \pi}
         = \frac{426880 \sqrt{10005}}{\pi}
-        = \sum_{q=0}^{\infty} \frac{(6q)!(545140134q+13591409)}{(3q)!{(q!)}^{3}{(-262537412640768000)}^{q}}
+        = \sum_{q=0}^{\infty}
+        \frac{(6q)!(545140134q+13591409)}{(3q)!{(q!)}^{3}{(-262537412640768000)}^{q}}
 
-    The result can then be generalized as the following:
+    which can be generalized as the following:
 
     .. math::
 
@@ -120,6 +125,7 @@ def pi(prec: int = PRECISION) -> Decimal:
     This generalization is the method this function uses to compute approximations of :math:`\pi`.
 
     :param prec: The number of decimal places of precision
+    :return: The value of :math:`\pi`, to ``prec`` decimal palces of precision
     """
     with decimal.localcontext() as ctx:
         ctx.prec = prec + 2
@@ -323,7 +329,7 @@ def ms_hyperbolic_arcsine(n: int, x: Decimal, prec: int = PRECISION) -> Decimal:
 
     .. math::
 
-        \operatorname{arsinh}(x) = \sum_{n=0}^{\infty} {(\frac{-1}{4})}^{n} \binom{2n}{n} \frac{{x}^{2n+1}}{2n+1}
+        \operatorname{arsinh}(x) = \sum_{n=0}^{\infty} {(-\frac{1}{4})}^{n} \binom{2n}{n} \frac{{x}^{2n+1}}{2n+1}
 
     `[2]`_ `[5]`_ `[10]`_.
 
@@ -361,9 +367,13 @@ def ms_hyperbolic_arctangent(n: int, x: Decimal, prec: int = PRECISION) -> Decim
 
 class MaclaurinExpansion:
     """
-    :param func: A callable object that takes parameters ``n`` and ``x`` and returns the value of
-    the :math:`n`-th term of the Maclaurin series expansion of the represented mathematical
-    function, evaluated at :math:`x`
+    :param func: See :py:attr:`MaclaurinExpansion.func`
+
+    .. py:attribute:: func
+
+        A callable object that takes parameters ``n`` and ``x`` and returns the value of
+        the :math:`n`-th term of the Maclaurin series expansion of the represented mathematical
+        function, evaluated at :math:`x`.
     """
     def __init__(self, func: typing.Callable[[int, Decimal], Decimal]):
         self.func = func
@@ -431,11 +441,11 @@ def natural_logarithm(x: Decimal, prec: int = PRECISION) -> Decimal:
 
                 0 & \quad x = 1
 
-                f(\frac{1}{x}) & \quad x > 1
+                -f(\frac{1}{x}) & \quad x > 1
             \end{array}
         \right.
 
-    `[] <https://mathworld.wolfram.com/NaturalLogarithm.html>`_.
+    `[12] <https://mathworld.wolfram.com/NaturalLogarithm.html>`_.
 
     .. note::
 
@@ -445,7 +455,7 @@ def natural_logarithm(x: Decimal, prec: int = PRECISION) -> Decimal:
     :param prec: The number of decimal places of precision
     :return: The value of :math:`\ln(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
-    :raise ValueError: The value of 'x' is outside the domain of :math:`\ln`(x)
+    :raise ValueError: The value of ``x`` is outside the domain of :math:`\ln`(x)
     """
     if 0 < x < 1:
         return _natural_logarithm(x, prec)
@@ -466,7 +476,7 @@ def sine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\sin(x), x \in \mathbb{R}` to ``prec`` decimal places of precision.
 
-    `[] <https://mathworld.wolfram.com/Sine.html>`_.
+    `[13] <https://mathworld.wolfram.com/Sine.html>`_.
 
     .. note::
 
@@ -474,7 +484,7 @@ def sine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\sin(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\sin(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     return _sine(x, prec)
@@ -484,7 +494,7 @@ def cosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
     Evaluates :math:`\cos(x), x \in \mathbb{R}` to ``prec`` decimal places of precision.
 
-    `[] <https://mathworld.wolfram.com/Cosine.html>`_.
+    `[14] <https://mathworld.wolfram.com/Cosine.html>`_.
 
     .. note::
 
@@ -492,7 +502,7 @@ def cosine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\cos(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\cos(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     return _cosine(x, prec)
@@ -500,9 +510,16 @@ def cosine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\tan(x), x \in \{k | k \in \mathbb{R}\}` to ``prec`` decimal places of precision.
+    Evaluates :math:`\tan(x), x \in \{k | k \neq \frac{\pi}{2} + k \pi, k \in \mathbb{R}\}` to
+    ``prec`` decimal places of precision.
 
-    `[] <https://mathworld.wolfram.com/Tangent.html>`_.
+    This function approximates :math:`\tan(x)` using the following definition:
+
+    .. math::
+
+        \tan(x) = \frac{\sin(x)}{\cos(x)}
+
+    `[15] <https://mathworld.wolfram.com/Tangent.html>`_.
 
     .. note::
 
@@ -510,7 +527,7 @@ def tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\tan(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\tan(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     try:
@@ -521,9 +538,16 @@ def tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def secant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\sec(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\sec(x), x \in \{k | k \neq \frac{\pi}{2} + k \pi, k \in \mathbb{R}\}` to
+    ``prec`` decimal places of precision.
 
-    `[] <https://mathworld.wolfram.com/Secant.html>`_.
+    This function approximates :math:`\sec(x)` using the following definition:
+
+    .. math::
+
+        \sec(x) = {\cos(x)}^{-1}
+
+    `[16] <https://mathworld.wolfram.com/Secant.html>`_.
 
     .. note::
 
@@ -531,20 +555,27 @@ def secant(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\sec(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\sec(x)`, to ``prec`` decimal palces of precision
     :rtype: decimal.Decimal
     """
     try:
-        return 1 / cosine(x, prec)
+        return cosine(x, prec) ** -1
     except ZeroDivisionError:
         return NAN
 
 
 def cosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\csc(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\csc(x), x \in \{k | k \neq k \pi, k \in \mathbb{R}\}` to ``prec`` decimal
+    places of precision.
 
-    `[] <https://mathworld.wolfram.com/Cosecant.html>`_.
+    This function approximates :math:`\csc(x)` using the following definition:
+
+    .. math::
+
+        \csc(x) = {\sin(x)}^{-1}
+
+    `[17] <https://mathworld.wolfram.com/Cosecant.html>`_.
 
     .. note::
 
@@ -552,20 +583,27 @@ def cosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\csc(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\csc(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     try:
-        return 1 / sine(x, prec)
+        return sine(x, prec) ** -1
     except ZeroDivisionError:
         return NAN
 
 
 def cotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\cot(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\cot(x), x \in \{k | k \neq k \pi, k \in \mathbb{R}\}` to ``prec`` decimal
+    places of precision.
 
-    `[] <https://mathworld.wolfram.com/Cotangent.html>`_.
+    This function approximates :math:`\cot(x)` using the following definition:
+
+    .. math::
+
+        \cot(x) = \frac{\cos(x)}{\sin(x)}
+
+    `[18] <https://mathworld.wolfram.com/Cotangent.html>`_.
 
     .. note::
 
@@ -573,7 +611,7 @@ def cotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\cot(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\cot(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     try:
@@ -592,9 +630,11 @@ sec, csc, cot = secant, cosecant, cotangent
 
 def arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Let :math:`f(x)` be the Maclaurin series expansion (see :py:func:`ms_arcsine`) of
-    :math:`\arcsin(x)` evaluated at ``x``. This function approximates :math:`\arcsin(x)` using the
-    following piecewise function:
+    Evaluates :math:`\arcsin(x), x \in [-1, 1]` to ``prec`` decimal places of precision.
+
+    Let :math:`f(x)` be the Maclaurin series expansion of :math:`\arcsin(x)` (see
+    :py:func:`ms_arcsine`) evaluated at ``x``. This function approximates :math:`\arcsin(x)`
+    using the following piecewise function:
 
     .. math::
 
@@ -608,7 +648,7 @@ def arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
             \end{array}
         \right.
 
-    `[] <https://mathworld.wolfram.com/InverseSine.html>`_.
+    `[19] <https://mathworld.wolfram.com/InverseSine.html>`_.
 
     Explicit values are returned for :math:`x \in \{-1, 1\}` because the Maclaurin series expansion
     of :math:`\arcsin(x)` is slow to converge for those values of :math:`x`.
@@ -619,7 +659,7 @@ def arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\arcsin(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\arcsin(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\arcsin(x)`
     """
@@ -634,9 +674,11 @@ def arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Let :math:`f(x)` be the Maclaurin series expansion (see :py:func:`ms_arcsine`) of
-    :math:`\arcsin(x)` evaluated at ``x``. This function approximates :math:`\arccos(x)` using the
-    following piecewise function:
+    Evaluates :math:`\arccos(x), x \in [-1, 1]` to ``prec`` decimal places of precision.
+
+    Let :math:`f(x)` be the Maclaurin series expansion of :math:`\arcsin(x)` (see
+    :py:func:`ms_arcsine`) evaluated at ``x``. This function approximates :math:`\arccos(x)`
+    using the following piecewise function:
 
     .. math::
 
@@ -650,7 +692,7 @@ def arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
             \end{array}
         \right.
 
-    `[] <https://mathworld.wolfram.com/InverseCosine.html>`_.
+    `[20] <https://mathworld.wolfram.com/InverseCosine.html>`_.
 
     Explicit values are returned for :math:`x \in \{-1, 1\}` because the Maclaurin series expansion
     of :math:`\arcsin(x)` is slow to converge for those values of :math:`x`.
@@ -661,7 +703,7 @@ def arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\arccos(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\arccos(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\arccos(x)`
     """
@@ -676,9 +718,11 @@ def arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Let :math:`f(x)` be the Maclaurin series expansion (see :py:func:`ms_arctangent`) of
-    :math:`\arctan(x)` evaluated at ``x``. This function approximates :math:`\arctan(x)` using the
-    following piecewise function:
+    Evaluates :math:`\arctan(x), x \in \mathbb{R}` to ``prec`` decimal places of precision.
+
+    Let :math:`f(x)` be the Maclaurin series expansion of :math:`\arctan(x)` (see
+    :py:func:`ms_arctangent`) evaluated at ``x``. This function approximates :math:`\arctan(x)`
+    using the following piecewise function:
 
     .. math::
 
@@ -696,7 +740,7 @@ def arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
             \end{array}
         \right.
 
-    `[] <https://mathworld.wolfram.com/InverseTangent.html>`_.
+    `[21] <https://mathworld.wolfram.com/InverseTangent.html>`_.
 
     .. note::
 
@@ -704,7 +748,7 @@ def arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     
     :param x: The value at which to evaluate :math:`\arctan(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\arctan(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     if x == -INF:
@@ -718,6 +762,9 @@ def arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
+    Evaluates :math:`\operatorname{arcsec}(x), x \in \mathbb{R}` to ``prec`` decimal places of
+    precision.
+
     This function approximates :math:`\operatorname{arcsec}(x)` using the following piecewise
     function:
 
@@ -733,7 +780,7 @@ def arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
             \end{array}
         \right.
 
-    `[] <https://mathworld.wolfram.com/InverseSecant.html>`_.
+    `[22] <https://mathworld.wolfram.com/InverseSecant.html>`_.
 
     .. note::
 
@@ -741,7 +788,7 @@ def arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\operatorname{arcsec}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{arcsec}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcsec}(x)`
     """
@@ -756,6 +803,9 @@ def arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
+    Evaluates :math:`\operatorname{arccsc}(x), x \in \mathbb{R}` to ``prec`` decimal places of
+    precision.
+
     This function approximates :math:`\operatorname{arccsc}(x)` using the following piecewise
     function:
 
@@ -771,7 +821,7 @@ def arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
             \end{array}
         \right.
 
-    `[] <https://mathworld.wolfram.com/InverseCosecant.html>`_.
+    `[23] <https://mathworld.wolfram.com/InverseCosecant.html>`_.
 
     .. note::
 
@@ -779,7 +829,7 @@ def arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\operatorname{arccsc}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{arccsc}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arccsc}(x)`
     """
@@ -794,6 +844,9 @@ def arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
+    Evaluates :math:`\operatorname{arccot}(x), x \in \mathbb{R}` to ``prec`` decimal places of
+    precision.
+
     This function approximates :math:`\operatorname{arccot}(x)` using the following piecewise
     function:
 
@@ -809,7 +862,7 @@ def arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
             \end{array}
         \right.
 
-    `[] <https://mathworld.wolfram.com/InverseCotangent.html>`_.
+    `[24] <https://mathworld.wolfram.com/InverseCotangent.html>`_.
 
     .. note::
 
@@ -817,7 +870,7 @@ def arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\operatorname{arccot}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{arccot}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     if x == -INF:
@@ -837,9 +890,9 @@ arcsec, arccsc, arccot = arcsecant, arccosecant, arccotangent
 
 def hyperbolic_sine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\sinh(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\sinh(x), x \in \mathbb{R}` to ``prec`` decimal places of precision.
 
-    `[] <https://mathworld.wolfram.com/HyperbolicSine.html>`_.
+    `[25] <https://mathworld.wolfram.com/HyperbolicSine.html>`_.
 
     .. note::
 
@@ -847,7 +900,7 @@ def hyperbolic_sine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\sinh(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{sinh}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     return _hyperbolic_sine(x, prec)
@@ -855,9 +908,9 @@ def hyperbolic_sine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def hyperbolic_cosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\cosh(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\cosh(x), x \in \mathbb{R}` to ``prec`` decimal places of precision.
 
-    `[] <https://mathworld.wolfram.com/HyperbolicCosine.html>`_.
+    `[26] <https://mathworld.wolfram.com/HyperbolicCosine.html>`_.
 
     .. note::
 
@@ -865,7 +918,7 @@ def hyperbolic_cosine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\cosh(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{cosh}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     return _hyperbolic_cosine(x, prec)
@@ -873,9 +926,15 @@ def hyperbolic_cosine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def hyperbolic_tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\tanh(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\tanh(x), x \in \mathbb{R}` to ``prec`` decimal places of precision.
 
-    `[] <https://mathworld.wolfram.com/HyperbolicTangent.html>`_.
+    This function approximates :math:`\tanh(x)` using the following definition:
+
+    .. math::
+
+        \tanh(x) = \frac{\sinh(x)}{\cosh(x)}.
+
+    `[27] <https://mathworld.wolfram.com/HyperbolicTangent.html>`_.
 
     .. note::
 
@@ -883,7 +942,7 @@ def hyperbolic_tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\tanh(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{tanh}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     return hyperbolic_sine(x, prec) / hyperbolic_cosine(x, prec)
@@ -891,9 +950,16 @@ def hyperbolic_tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def hyperbolic_secant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\operatorname{sech}(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\operatorname{sech}(x), x \in \mathbb{R}` to ``prec`` decimal places of
+    precision.
 
-    `[] <https://mathworld.wolfram.com/HyperbolicSecant.html>`_.
+    This function approximates :math:`\operatorname{sech}(x)` using the following definition:
+
+    .. math::
+
+        \operatorname{sech}(x) = {\cosh(x)}^{-1}.
+
+    `[28] <https://mathworld.wolfram.com/HyperbolicSecant.html>`_.
 
     .. note::
 
@@ -901,17 +967,24 @@ def hyperbolic_secant(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\operatorname{sech}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{sech}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
-    return 1 / hyperbolic_cosine(x, prec)
+    return hyperbolic_cosine(x, prec) ** -1
 
 
 def hyperbolic_cosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\operatorname{csch}(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\operatorname{csch}(x), x \in (-\infty, 0) \cup (0, \infty)` to ``prec``
+    decimal places of precision.
 
-    `[] <https://mathworld.wolfram.com/HyperbolicCosecant.html>`_.
+    This function approximates :math:`\operatorname{csch}(x)` using the following definition:
+
+    .. math::
+
+        \operatorname{csch}(x) = {\sinh(x)}^{-1}.
+
+    `[29] <https://mathworld.wolfram.com/HyperbolicCosecant.html>`_.
 
     .. note::
 
@@ -919,20 +992,27 @@ def hyperbolic_cosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\operatorname{csch}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{csch}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     try:
-        return 1 / hyperbolic_sine(x, prec)
+        return hyperbolic_sine(x, prec) ** -1
     except ZeroDivisionError:
         return NAN
 
 
 def hyperbolic_cotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\coth(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\coth(x), x \in (-\infty, 0) \cup (0, \infty)` to ``prec`` decimal places of
+    precision.
 
-    `[] <https://mathworld.wolfram.com/HyperbolicCotangent.html>`_.
+    This function approximates :math:`\coth(x)` using the following definition:
+
+    .. math::
+
+        \coth(x) = \frac{\cosh(x)}{\sinh(x)}.
+
+    `[30] <https://mathworld.wolfram.com/HyperbolicCotangent.html>`_.
 
     .. note::
 
@@ -940,7 +1020,7 @@ def hyperbolic_cotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\coth(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{coth}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     try:
@@ -959,9 +1039,26 @@ sech, csch, coth = hyperbolic_secant, hyperbolic_cosecant, hyperbolic_cotangent
 
 def hyperbolic_arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\operatorname{arsinh}(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\operatorname{arsinh}(x), x \in \mathbb{R}` to ``prec`` decimal places of
+    precision.
 
-    `[] <https://mathworld.wolfram.com/InverseHyperbolicSine.html>`_.
+    Let :math:`f(x)` be the Maclaurin series expansion of :math:`\operatorname{arsinh}(x)` (see
+    :py:func:`ms_hyperbolic_arcsine`) evaluated at ``x``. This function approximates
+    :math:`\operatorname{arsinh}(x)` using the following piecewise function:
+
+    .. math::
+
+        \operatorname{arsinh}(x) = \left \{
+            \begin{array}{ll}
+                \ln(x + \sqrt{{x}^{2} + 1}) & \quad x \in (-\infty, -0.95]
+
+                f(x) & \quad x \in (-0.95, 0.95)
+
+                \ln(x + \sqrt{{x}^{2} + 1}) & \quad x \in [0.95, \infty)
+            \end{array}
+        \right.
+
+    `[31] <https://mathworld.wolfram.com/InverseHyperbolicSine.html>`_.
 
     .. note::
 
@@ -969,7 +1066,7 @@ def hyperbolic_arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
     :param x: The value at which to evaluate :math:`\operatorname{arsinh}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{arsinh}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
     if abs(x) >= 0.95:
@@ -979,9 +1076,23 @@ def hyperbolic_arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def hyperbolic_arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\operatorname{arcosh}(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\operatorname{arcosh}(x), x \in [1, \infty)` to ``prec`` decimal places of
+    precision.
 
-    `[] <https://mathworld.wolfram.com/InverseHyperbolicCosine.html>`_.
+    This function approximates :math:`\operatorname{arsinh}(x)` using the following piecewise
+    function:
+
+    .. math::
+
+        \operatorname{arcosh}(x) = \left \{
+            \begin{array}{ll}
+                \ln(x + \sqrt{{x}^{2} - 1)} & \quad x \in [1, \sqrt{1.95}]
+
+                \operatorname{arsinh}(x) & \quad x \in (\sqrt{1.95}, \infty)
+            \end{array}
+        \right.
+
+    `[32] <https://mathworld.wolfram.com/InverseHyperbolicCosine.html>`_.
 
     .. note::
 
@@ -989,11 +1100,11 @@ def hyperbolic_arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     
     :param x: The value at which to evaluate :math:`\operatorname{arcosh}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{arcosh}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcosh}(x)`
     """
-    if not abs(x) >= 1:
+    if not x >= 1:
         raise ValueError("domain error")
     if x ** 2 > 1.95:
         return ln(x + Decimal(x ** 2 - 1).sqrt(), prec)
@@ -1002,9 +1113,10 @@ def hyperbolic_arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def hyperbolic_arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\operatorname{artanh}(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\operatorname{artanh}(x), x \in (-1, 1)` to ``prec`` decimal places of
+    precision.
 
-    `[] <https://mathworld.wolfram.com/InverseHyperbolicTangent.html>`_.
+    `[33] <https://mathworld.wolfram.com/InverseHyperbolicTangent.html>`_.
 
     .. note::
 
@@ -1012,7 +1124,7 @@ def hyperbolic_arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     
     :param x: The value at which to evaluate :math:`\operatorname{artanh}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{artanh}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{artanh}(x)`
     """
@@ -1023,9 +1135,16 @@ def hyperbolic_arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def hyperbolic_arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\operatorname{arsech}(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\operatorname{arsech}(x), x \in (0, 1]` to ``prec`` decimal places of
+    precision.
 
-    `[] <https://mathworld.wolfram.com/InverseHyperbolicSecant.html>`_.
+    This function approximates :math:`\operatorname{arsech}(x)` using the following definition:
+
+    .. math::
+
+        \operatorname{arsech}(x) = \cosh(\frac{1}{x}).
+
+    `[34] <https://mathworld.wolfram.com/InverseHyperbolicSecant.html>`_.
 
     .. note::
 
@@ -1033,7 +1152,7 @@ def hyperbolic_arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     
     :param x: The value at which to evaluate :math:`\operatorname{arsech}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{arsech}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arsech}(x)`
     """
@@ -1044,9 +1163,16 @@ def hyperbolic_arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def hyperbolic_arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\operatorname{arcsch}(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\operatorname{arcsch}(x), x \in (-\infty, 0) \cup (0, \infty)` to ``prec``
+    decimal places of precision.
 
-    `[] <https://mathworld.wolfram.com/InverseHyperbolicCosecant.html>`_.
+    This function approximates :math:`\operatorname{arcsch}(x)` using the following definition:
+
+    .. math::
+
+        \operatorname{arcsch}(x) = \sinh(\frac{1}{x}).
+
+    `[35] <https://mathworld.wolfram.com/InverseHyperbolicCosecant.html>`_.
 
     .. note::
 
@@ -1054,7 +1180,7 @@ def hyperbolic_arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     
     :param x: The value at which to evaluate :math:`\operatorname{arcsch}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{arcsc}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcsch}(x)`
     """
@@ -1066,9 +1192,16 @@ def hyperbolic_arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
 
 def hyperbolic_arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     r"""
-    Evaluates :math:`\operatorname{arcoth}(x)` to ``prec`` decimal places of precision.
+    Evaluates :math:`\operatorname{arcoth}(x), x \in (-\infty, 1) \cup (1, \infty)` to ``prec``
+    decimal places of precision.
 
-    `[] <https://mathworld.wolfram.com/InverseHyperbolicCotangent.html>`_.
+    This function approximates :math:`\operatorname{arcoth}(x)` using the following definition:
+
+    .. math::
+
+        \operatorname{arcoth}(x) = \tanh(\frac{1}{x}).
+
+    `[36] <https://mathworld.wolfram.com/InverseHyperbolicCotangent.html>`_.
 
     .. note::
 
@@ -1076,7 +1209,7 @@ def hyperbolic_arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     
     :param x: The value at which to evaluate :math:`\operatorname{arcoth}(x)`
     :param prec: The number of decimal places of precision
-    :return:
+    :return: The value of :math:`\operatorname{arcoth}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcoth}(x)`
     """
