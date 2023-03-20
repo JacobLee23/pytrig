@@ -8,6 +8,18 @@ Pytrig Documentation
 Features
 --------
 
+- Adjustable precision
+- Support for trigonometric and inverse trigonometric functions
+- Support for hyperbolic and inverse hyperbolic functions
+- Computation of Maclaurin Series expansions
+
+Requirements
+------------
+
+Requires Python 3.8+.
+
+No third-party package dependencies required.
+
 User Guide
 ----------
 
@@ -24,3 +36,11 @@ API Documentation
    :maxdepth: 1
 
    api
+
+Contributor Guide
+-----------------
+
+.. toctree::
+   :maxdepth: 1
+
+   user/contributor
