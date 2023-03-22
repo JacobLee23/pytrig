@@ -56,8 +56,8 @@ Angle Conversions
 .. autofunction:: to_degrees(theta: decimal.Decimal, prec: int)
 .. autofunction:: to_radians(theta: decimal.Decimal, prec: int)
 
-Pi Approximations
------------------
+:math:`\pi` Approximations
+--------------------------
 
 .. autofunction:: pi
 

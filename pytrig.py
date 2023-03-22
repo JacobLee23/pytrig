@@ -462,7 +462,7 @@ def natural_logarithm(x: Decimal, prec: int = PRECISION) -> Decimal:
     if x == 1:
         return Decimal(0)
     if x > 1:
-        return -natural_logarithm(1 / x, prec)
+        return -_natural_logarithm(1 / x, prec)
     raise ValueError("domain error")
 
 
@@ -530,10 +530,13 @@ def tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     :return: The value of :math:`\tan(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
-    try:
-        return sine(x, prec) / cosine(x, prec)
-    except ZeroDivisionError:
-        return NAN
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+    
+        try:
+            return sine(x, prec) / cosine(x, prec)
+        except ZeroDivisionError:
+            return NAN
 
 
 def secant(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -558,10 +561,13 @@ def secant(x: Decimal, prec: int = PRECISION) -> Decimal:
     :return: The value of :math:`\sec(x)`, to ``prec`` decimal palces of precision
     :rtype: decimal.Decimal
     """
-    try:
-        return cosine(x, prec) ** -1
-    except ZeroDivisionError:
-        return NAN
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        try:
+            return cosine(x, prec) ** -1
+        except ZeroDivisionError:
+            return NAN
 
 
 def cosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -586,10 +592,13 @@ def cosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     :return: The value of :math:`\csc(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
-    try:
-        return sine(x, prec) ** -1
-    except ZeroDivisionError:
-        return NAN
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        try:
+            return sine(x, prec) ** -1
+        except ZeroDivisionError:
+            return NAN
 
 
 def cotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -614,10 +623,13 @@ def cotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     :return: The value of :math:`\cot(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
-    try:
-        return cosine(x, prec) / sine(x, prec)
-    except ZeroDivisionError:
-        return NAN
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        try:
+            return cosine(x, prec) / sine(x, prec)
+        except ZeroDivisionError:
+            return NAN
 
 
 # Shorthands for trigonometric functions
@@ -663,13 +675,16 @@ def arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\arcsin(x)`
     """
-    if x == -1:
-        return -pi(prec) / 2
-    if -1 < x < 1:
-        return _arcsine(x, prec)
-    if x == 1:
-        return pi(prec) / 2
-    raise ValueError("domain error")
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        if x == -1:
+            return -pi(prec) / 2
+        if -1 < x < 1:
+            return _arcsine(x, prec)
+        if x == 1:
+            return pi(prec) / 2
+        raise ValueError("domain error")
 
 
 def arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -710,7 +725,7 @@ def arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     if x == -1:
         return pi(prec)
     if -1 < x < 1:
-        return pi(prec) / 2 - _arcsine(x, prec)
+        return pi(prec) / 2 - arcsine(x, prec)
     if x == 1:
         return Decimal(0)
     raise ValueError("domain error")
@@ -929,7 +944,7 @@ def hyperbolic_tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     Evaluates :math:`\tanh(x), x \in \mathbb{R}` to ``prec`` decimal places of precision.
 
     This function approximates :math:`\tanh(x)` using the following definition:
-
+ 
     .. math::
 
         \tanh(x) = \frac{\sinh(x)}{\cosh(x)}.
@@ -945,7 +960,10 @@ def hyperbolic_tangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     :return: The value of :math:`\operatorname{tanh}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
-    return hyperbolic_sine(x, prec) / hyperbolic_cosine(x, prec)
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        return hyperbolic_sine(x, prec) / hyperbolic_cosine(x, prec)
 
 
 def hyperbolic_secant(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -1070,7 +1088,7 @@ def hyperbolic_arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
     :rtype: decimal.Decimal
     """
     if abs(x) >= 0.95:
-        return ln(x + Decimal(x ** 2 + 1).sqrt(), prec)
+        return natural_logarithm(x + Decimal(x ** 2 + 1).sqrt(), prec)
     return _hyperbolic_arcsine(x)
 
 
