@@ -722,13 +722,16 @@ def arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\arccos(x)`
     """
-    if x == -1:
-        return pi(prec)
-    if -1 < x < 1:
-        return pi(prec) / 2 - arcsine(x, prec)
-    if x == 1:
-        return Decimal(0)
-    raise ValueError("domain error")
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        if x == -1:
+            return pi(prec)
+        if -1 < x < 1:
+            return pi(prec) / 2 - arcsine(x, prec)
+        if x == 1:
+            return Decimal(0)
+        raise ValueError("domain error")
 
 
 def arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -807,13 +810,16 @@ def arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcsec}(x)`
     """
-    if x == -INF:
-        return pi(prec) / 2
-    if x == INF:
-        return pi(prec) / 2
-    if x <= -1 or x >= 1:
-        return arccosine(1 / x, prec)
-    raise ValueError("domain error")
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        if x == -INF:
+            return pi(prec) / 2
+        if x == INF:
+            return pi(prec) / 2
+        if x <= -1 or x >= 1:
+            return arccosine(1 / x, prec)
+        raise ValueError("domain error")
 
 
 def arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -848,13 +854,16 @@ def arccosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     :rtype: decimal.Decimal
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arccsc}(x)`
     """
-    if x == -INF:
-        return Decimal(0)
-    if x == INF:
-        return Decimal(0)
-    if x <= -1 or x >= 1:
-        return arcsine(1 / x, prec)
-    raise ValueError("domain error")
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        if x == -INF:
+            return Decimal(0)
+        if x == INF:
+            return Decimal(0)
+        if x <= -1 or x >= 1:
+            return arcsine(1 / x, prec)
+        raise ValueError("domain error")
 
 
 def arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -888,11 +897,14 @@ def arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     :return: The value of :math:`\operatorname{arccot}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
-    if x == -INF:
-        return pi(prec)
-    if x == INF:
-        return Decimal(0)
-    return arctangent(1 / x, prec)
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+        
+        if x == -INF:
+            return pi(prec)
+        if x == INF:
+            return Decimal(0)
+        return arctangent(1 / x, prec)
 
 
 # Shorthands for inverse trigonometric functions
@@ -988,7 +1000,10 @@ def hyperbolic_secant(x: Decimal, prec: int = PRECISION) -> Decimal:
     :return: The value of :math:`\operatorname{sech}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
-    return hyperbolic_cosine(x, prec) ** -1
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        return hyperbolic_cosine(x, prec) ** -1
 
 
 def hyperbolic_cosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -1013,10 +1028,13 @@ def hyperbolic_cosecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     :return: The value of :math:`\operatorname{csch}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
-    try:
-        return hyperbolic_sine(x, prec) ** -1
-    except ZeroDivisionError:
-        return NAN
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        try:
+            return hyperbolic_sine(x, prec) ** -1
+        except ZeroDivisionError:
+            return NAN
 
 
 def hyperbolic_cotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -1041,10 +1059,13 @@ def hyperbolic_cotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     :return: The value of :math:`\operatorname{coth}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
-    try:
-        return hyperbolic_cosine(x, prec) / hyperbolic_sine(x, prec)
-    except ZeroDivisionError:
-        return NAN
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        try:
+            return hyperbolic_cosine(x, prec) / hyperbolic_sine(x, prec)
+        except ZeroDivisionError:
+            return NAN
 
 
 # Shorthands for hyperbolic functions
@@ -1087,9 +1108,12 @@ def hyperbolic_arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
     :return: The value of :math:`\operatorname{arsinh}(x)`, to ``prec`` decimal places of precision
     :rtype: decimal.Decimal
     """
-    if abs(x) >= 0.95:
-        return natural_logarithm(x + Decimal(x ** 2 + 1).sqrt(), prec)
-    return _hyperbolic_arcsine(x)
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+
+        if abs(x) >= 0.95:
+            return natural_logarithm(x + Decimal(x ** 2 + 1).sqrt(), prec)
+        return _hyperbolic_arcsine(x)
 
 
 def hyperbolic_arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -1123,10 +1147,14 @@ def hyperbolic_arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
     :raise ValueError: ``x`` is outside the domain of :math:`\operatorname{arcosh}(x)`
     """
     if not x >= 1:
-        raise ValueError("domain error")
-    if x ** 2 > 1.95:
-        return ln(x + Decimal(x ** 2 - 1).sqrt(), prec)
-    return hyperbolic_arcsine(x ** 2 - 1, prec)
+            raise ValueError("domain error")
+    
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+        
+        if x ** 2 > 1.95:
+            return ln(x + Decimal(x ** 2 - 1).sqrt(), prec)
+        return hyperbolic_arcsine(x ** 2 - 1, prec)
 
 
 def hyperbolic_arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
@@ -1148,6 +1176,7 @@ def hyperbolic_arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     """
     if not abs(x) < 1:
         raise ValueError("domain error")
+    
     return _hyperbolic_arctangent(x, prec)
 
 
@@ -1176,6 +1205,7 @@ def hyperbolic_arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
     """
     if not 0 < x <= 1:
         raise ValueError("domain error")
+    
     return hyperbolic_cosine(1 / x, prec)
 
 
@@ -1233,7 +1263,11 @@ def hyperbolic_arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     """
     if not abs(x) > 1:
         raise ValueError("domain error")
-    return hyperbolic_tangent(1 / x, prec)
+    
+    with decimal.localcontext() as ctx:
+        ctx.prec = prec
+        
+        return hyperbolic_tangent(1 / x, prec)
 
 
 # Shorthands for inverse hyperbolic functions
