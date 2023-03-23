@@ -11,6 +11,7 @@ twine = "*"
 pylint = "*"
 vermin = "*"
 sphinx = "*"
+furo = "*"
 
 [requires]
 python_version = "3.11"

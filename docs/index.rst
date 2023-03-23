@@ -1,20 +1,46 @@
-.. pytrig documentation master file, created by
-   sphinx-quickstart on Tue Nov  1 19:32:08 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Pytrig Documentation
+====================
 
-Welcome to pytrig's documentation!
-==================================
+**Pytrig**, a pure-Python module for rapid, high-precision computation of trigonometric functions.
+
+-----
+
+Features
+--------
+
+- Adjustable precision
+- Support for trigonometric and inverse trigonometric functions
+- Support for hyperbolic and inverse hyperbolic functions
+- Computation of Maclaurin Series expansions
+
+Requirements
+------------
+
+Requires Python 3.8+.
+
+No third-party package dependencies required.
+
+User Guide
+----------
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
+   user/install
+   user/quickstart
 
+API Documentation
+-----------------
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 1
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   api
+
+Contributor Guide
+-----------------
+
+.. toctree::
+   :maxdepth: 1
+
+   user/contributor
