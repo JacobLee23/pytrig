@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytrig"
-version = "1.0.0-a.1"
+version = "1.0.0-a.3"
 authors = [
     { name = "Jacob Lee", email = "Jacob.J.Lee@outlook.com" }
 ]
@@ -12,7 +12,7 @@ description = ""
 readme = "README.md"
 license = { file = "LICENSE" }
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
