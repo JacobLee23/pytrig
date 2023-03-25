@@ -37,6 +37,7 @@ The **pytrig** module supports computation of the following functions and classe
 import decimal
 from decimal import Decimal
 from math import comb, factorial
+from numbers import Number
 import typing
 
 
@@ -65,7 +66,7 @@ def to_degrees(theta: Decimal, prec: int = PRECISION) -> Decimal:
     :param prec: The number of decimal places of precision
     :return: The angle measure, in degrees, to ``prec`` decimal places of precision
     """
-    return theta * 180 / pi(prec)
+    return theta * 180 / Pi(prec)()
 
 
 def to_radians(theta: Decimal, prec: int = PRECISION) -> Decimal:
@@ -76,13 +77,13 @@ def to_radians(theta: Decimal, prec: int = PRECISION) -> Decimal:
     :param prec: The number of decimal places of precision
     :return: The angle measure, in radians, to ``prec`` decimal places of precision
     """
-    return theta * pi(prec) / 180
+    return theta * Pi(prec)() / 180
 
 
 # --------------------------------------- Pi Approximations ---------------------------------------
 
 
-def pi(prec: int = PRECISION) -> Decimal:
+class Pi:
     r"""
     Uses the Chudnovsky algorithm to approximate the value of :math:`\pi` to ``prec`` decimal
     places of precision:
@@ -125,41 +126,290 @@ def pi(prec: int = PRECISION) -> Decimal:
     This generalization is the method this function uses to compute approximations of :math:`\pi`.
 
     :param prec: The number of decimal places of precision
-    :return: The value of :math:`\pi`, to ``prec`` decimal palces of precision
+    :return: The value of :math:`k{\pi}^{n}`, to ``prec`` decimal places of precision
     """
-    with decimal.localcontext() as ctx:
-        ctx.prec = prec + 2
+    def __init__(self, prec: int = PRECISION):
+        self.prec = prec
 
-        # Initial conditions
-        sum_ = Decimal(0)
-        k: int = 0
+        self._k = Decimal(1)        # Coefficient
+        self._p = Decimal(1)        # Exponent
 
-        # Ramanujan-Sato series generalization
-        term_c = 426880 * Decimal(10005).sqrt()
+    def __repr__(self) -> str:
+        return f"Pi(prec={self.prec}, _k={self.k}, _p={self.p})"
 
-        def term_m(n: int) -> Decimal:
-            return Decimal(factorial(6 * n)) / (
-                Decimal(factorial(3 * n)) * Decimal(factorial(n)) ** 3
+    def __str__(self) -> str:
+        return f"{self.k} * (PI ** {self.p})"
+
+    def __call__(self) -> Decimal:
+        with decimal.localcontext() as ctx:
+            ctx.prec = self.prec + 2
+
+            # Initial conditions
+            sum_ = Decimal(0)
+            k: int = 0
+
+            # Ramanujan-Sato series generalization
+            term_c = 426880 * Decimal(10005).sqrt()
+
+            def term_m(n: int) -> Decimal:
+                return Decimal(factorial(6 * n)) / (
+                    Decimal(factorial(3 * n)) * Decimal(factorial(n)) ** 3
+                )
+
+            def term_l(n: int) -> Decimal:
+                return Decimal(545140134 * n + 13591409)
+
+            def term_x(n: int) -> Decimal:
+                return Decimal(-262537412640768000) ** n
+
+            # Compute the Chudnovsky Algorithm
+            while True:
+                term = term_m(k) * term_l(k) / term_x(k)
+
+                # Check for convergence
+                if sum_ + term == sum_:
+                    res = term_c * sum_ ** -1
+                    break
+
+                sum_ += term
+                k += 1
+
+            return self.k * (res ** self.p)
+
+    def __add__(self, other: typing.Union["Pi", Decimal, Number]) -> typing.Union["Pi", Decimal]:
+        if isinstance(other, type(self)):
+            if self.p == other.p:
+                res = Pi(min(self.prec, other.prec))
+                res._k, res._p = self.k + other.k, self.p
+                return res
+            return self() + other()
+
+        if isinstance(other, Number):
+            with decimal.localcontext() as ctx:
+                ctx.prec = self.prec
+
+                return self() + Decimal(str(other))
+
+        raise TypeError(
+            "unsupported operand type(s) for +: '{}' and '{}'".format(
+                type(self).__name__, type(other).__name__
+            )
+        )
+
+    def __sub__(self, other: typing.Union["Pi", Decimal, Number]) -> typing.Union["Pi", Decimal]:
+        if isinstance(other, type(self)):
+            if self.p == other.p:
+                res = Pi(min(self.prec, other.prec))
+                res._k, res._p = self.k - self.k, self.p
+                return res
+            return self() - other()
+
+        if isinstance(other, Number):
+            with decimal.localcontext() as ctx:
+                ctx.prec = self.prec
+
+                return self() - Decimal(str(other))
+
+        raise TypeError(
+            "unsupported operand type(s) for -: '{}' and '{}'".format(
+                type(self).__name__, type(other).__name__
+            )
+        )
+
+    def __mul__(self, other: typing.Union["Pi", Decimal, Number]) -> "Pi":
+        if isinstance(other, type(self)):
+            res = Pi(min(self.prec, other.prec))
+            res._k, res._p = self.k * other.k, self.p + other.p
+        elif isinstance(other, Number):
+            res = Pi(self.prec)
+            res._k = self.k * (other if isinstance(other, Decimal) else Decimal(str(other)))
+            res._p = self.p
+        else:
+            raise TypeError(
+                "unsupported operand type(s) for *: '{}' and '{}'".format(
+                    type(self).__name__, type(other).__name__
+                )
             )
 
-        def term_l(n: int) -> Decimal:
-            return Decimal(545140134 * n + 13591409)
+        return res
 
-        def term_x(n: int) -> Decimal:
-            return Decimal(-262537412640768000) ** n
+    def __truediv__(self, other: typing.Union["Pi", Decimal, Number]) -> "Pi":
+        if isinstance(other, type(self)):
+            res = Pi(min(self.prec, other.prec))
+            res._k, res._p = self.k / other.k, self.p - other.p
+        elif isinstance(other, Number):
+            res = Pi(self.prec)
+            res._k = self._k / (other if isinstance(other, Decimal) else Decimal(str(other)))
+            res._p = self.p
+        else:
+            raise TypeError(
+                "unsupported operand type(s) for /: '{}' and '{}'".format(
+                    type(self).__name__, type(other).__name__
+                )
+            )
 
-        while True:
-            term = term_m(k) * term_l(k) / term_x(k)
+        return res
 
-            # Test for convergence
-            if sum_ + term == sum_:
-                return term_c * sum_ ** -1
+    def __floordiv__(self, other: typing.Union["Pi", Decimal, Number]) -> Decimal:
+        if isinstance(other, type(self)):
+            return self() // other()
 
-            sum_ += term
-            k += 1
+        if isinstance(other, Number):
+            with decimal.localcontext() as ctx:
+                ctx.prec = self.prec
 
+                return self() // (other if isinstance(other, Decimal) else Decimal(str(other)))
 
-PI = pi()
+        raise TypeError(
+            "unsupported oeprand type(s) for //: '{}' and '{}'".format(
+                type(self).__name__, type(other).__name__
+            )
+        )
+
+    def __mod__(self, other: Number) -> Decimal:
+        if isinstance(other, type(self)):
+            return self() % other()
+
+        if isinstance(other, Number):
+            with decimal.localcontext() as ctx:
+                ctx.prec = self.prec
+
+                return self() % (other if isinstance(other, Decimal) else Decimal(str(other)))
+
+        raise TypeError(
+            "unsupported oeprand type(s) for %: '{}' and '{}'".format(
+                type(self).__name__, type(other).__name__
+            )
+        )
+
+    def __pow__(self, other: typing.Union["Pi", Decimal, Number]) -> "Pi":
+        if isinstance(other, type(self)):
+            with decimal.localcontext() as ctx:
+                ctx.prec = self.prec
+
+                return self() ** other()
+
+        if isinstance(other, Number):
+            res = Pi(self.prec)
+            res._k = self.k
+            res._p = self.p * (other if isinstance(other, Decimal) else Decimal(str(other)))
+            return res
+
+        raise TypeError(
+            "unsupported operand type(s) for **: '{}' and '{}'".format(
+                type(self).__name__, type(other).__name__
+            )
+        )
+
+    def __radd__(self, other: typing.Union[Decimal, Number]) -> typing.Union["Pi", Decimal]:
+        if isinstance(other, Number):
+            return self.__add__(other)
+        raise TypeError(
+            "unsupported operand type(s) for +: '{}' and '{}'".format(
+                type(other).__name__, type(self).__name__
+            )
+        )
+
+    def __rsub__(self, other: typing.Union[Decimal, Number]) -> typing.Union["Pi", Decimal]:
+        if isinstance(other, Number):
+            return -self.__sub__(other)
+        raise TypeError(
+            "unsupported operand type(s) for -: '{}' and '{}'".format(
+                type(other).__name__, type(self).__name__
+            )
+        )
+
+    def __rmul__(self, other: typing.Union[Decimal, Number]) -> "Pi":
+        if isinstance(other, Number):
+            return self.__mul__(other)
+        raise TypeError(
+            "unsupported operand type(s) for *: '{}' and '{}'".format(
+                type(other).__name__, type(self).__name__
+            )
+        )
+
+    def __rtruediv__(self, other: typing.Union[Decimal, Number]) -> "Pi":
+        if isinstance(other, Number):
+            return other * self ** -1
+        raise TypeError(
+            "unsupported operand type(s) for /: '{}' and '{}'".format(
+                type(other).__name__, type(self).__name__
+            )
+        )
+
+    def __rfloordiv__(self, other: Number) -> Decimal:
+        with decimal.localcontext() as ctx:
+            ctx.prec = self.prec
+
+            return (other if isinstance(other, Decimal) else Decimal(str(other))) // self()
+
+    def __rmod__(self, other: Number) -> Decimal:
+        with decimal.localcontext() as ctx:
+            ctx.prec = self.prec
+
+            return (other if isinstance(other, Decimal) else Decimal(str(other))) % self()
+
+    def __rpow__(self, other: Number) -> Number:
+        with decimal.localcontext() as ctx:
+            ctx.prec = self.prec
+
+            return (other if isinstance(other, Decimal) else Decimal(str(other))) ** self()
+
+    def __neg__(self) -> "Pi":
+        with decimal.localcontext() as ctx:
+            ctx.prec = self.prec
+
+            res = type(self)(self.prec)
+            res._k, res._p = -self.k, self.p
+            return res
+
+    def __pos__(self) -> "Pi":
+        with decimal.localcontext() as ctx:
+            ctx.prec = self.prec
+
+            res = type(self)(self.prec)
+            res._k, res._p = +self.k, self.p
+            return res
+
+    def __abs__(self) -> "Pi":
+        with decimal.localcontext() as ctx:
+            ctx.prec = self.prec
+
+            res = type(self)(self.prec)
+            res._k, res._p = abs(self.k), self.p
+            return res
+
+    def __int__(self) -> int:
+        return self().__int__()
+
+    def __float__(self) -> float:
+        return self().__float__()
+
+    def __round__(self) -> int:
+        return self().__round__()
+
+    def __trunc__(self) -> int:
+        return self().__trunc__()
+
+    def __floor__(self) -> int:
+        return self().__floor__()
+
+    def __ceil__(self) -> int:
+        return self().__ceil__()
+
+    @property
+    def k(self) -> Decimal:
+        r"""
+        The coefficient of :math:`\pi`.
+        """
+        return self._k
+
+    @property
+    def p(self) -> Decimal:
+        r"""
+        The exponent of :math:`\pi`.
+        """
+        return self._p
 
 
 # ---------------------------------- Maclaurin Series Expansions ----------------------------------
@@ -679,11 +929,11 @@ def arcsine(x: Decimal, prec: int = PRECISION) -> Decimal:
         ctx.prec = prec
 
         if x == -1:
-            return -pi(prec) / 2
+            return (-Pi(prec) / 2)()
         if -1 < x < 1:
             return _arcsine(x, prec)
         if x == 1:
-            return pi(prec) / 2
+            return (Pi(prec) / 2)()
         raise ValueError("domain error")
 
 
@@ -726,9 +976,9 @@ def arccosine(x: Decimal, prec: int = PRECISION) -> Decimal:
         ctx.prec = prec
 
         if x == -1:
-            return pi(prec)
+            return (Pi(prec)())()
         if -1 < x < 1:
-            return pi(prec) / 2 - arcsine(x, prec)
+            return Pi(prec) / 2 - arcsine(x, prec)
         if x == 1:
             return Decimal(0)
         raise ValueError("domain error")
@@ -770,9 +1020,9 @@ def arctangent(x: Decimal, prec: int = PRECISION) -> Decimal:
     :rtype: decimal.Decimal
     """
     if x == -INF:
-        return -pi(prec) / 2
+        return (-Pi(prec) / 2)()
     if x == INF:
-        return pi(prec) / 2
+        return (Pi(prec) / 2)()
     if -1 < x < 1:
         return _arctangent(x, prec)
     return arcsine(x / (Decimal(1) + x ** 2).sqrt(), prec)
@@ -814,9 +1064,9 @@ def arcsecant(x: Decimal, prec: int = PRECISION) -> Decimal:
         ctx.prec = prec
 
         if x == -INF:
-            return pi(prec) / 2
+            return (Pi(prec) / 2)()
         if x == INF:
-            return pi(prec) / 2
+            return (Pi(prec) / 2)()
         if x <= -1 or x >= 1:
             return arccosine(1 / x, prec)
         raise ValueError("domain error")
@@ -901,7 +1151,7 @@ def arccotangent(x: Decimal, prec: int = PRECISION) -> Decimal:
         ctx.prec = prec
         
         if x == -INF:
-            return pi(prec)
+            return Pi(prec)()
         if x == INF:
             return Decimal(0)
         return arctangent(1 / x, prec)
